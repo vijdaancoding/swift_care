@@ -22,6 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
         statusLight.className = 'status-connected';
         statusText.textContent = 'Connected';
         console.log('Successfully connected to the server.');
+        // Emit orchestrator connect event to start the agent system
+        socket.emit('orchestrator_connect');
     });
 
     socket.on('disconnect', () => {
