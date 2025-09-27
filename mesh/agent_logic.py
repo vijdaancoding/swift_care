@@ -2,6 +2,7 @@ import uuid
 import time
 
 
+
 class VNode:
     def __init__(self, node_id):
         self.node_id = node_id
@@ -52,7 +53,8 @@ class CNode:
         message_json["path"].append("C-Node")
 
         user_message = message_json.get("data", "")
-        
+
+
         # Call the user's processor function
         print(f"[C-Node] Calling user processor function...")
         response_data = processor_function(user_message)
@@ -63,7 +65,6 @@ class CNode:
             response_text = str(response_data)
 
 
-        
         # Create response in same JSON structure
         response_json = {
             "message_type": "response",
