@@ -3,7 +3,7 @@ import queue
 from mesh.agent_logic import VNode, run_relay_worker, run_c_worker
 from utils.global_history import add_user, add_model
 from utils.sizeof import get_size_kb
-
+from utils.mesh_metrics import mesh_metrics
 
 def mesh_bridge(input_json, processor_function, agent_name: str = "unknown"):
     """
@@ -29,7 +29,11 @@ def mesh_bridge(input_json, processor_function, agent_name: str = "unknown"):
     initial_size_kb = get_size_kb(input_json)
     print(f"[Metrics] Initial request size: {initial_size_kb:.4f} KB")
 
-
+    # Initialize V-Node and process input (common for both routes)
+    v_node = VNode("V-NODE")
+    processed_input = v_node.process_message(input_json.copy())
+    
+    vnode_output_kb = get_size_kb(processed_input)
     # ----------
     # WiFi Direct
     # ----------
@@ -45,7 +49,6 @@ def mesh_bridge(input_json, processor_function, agent_name: str = "unknown"):
         c_thread.start()
 
         # V-Node sends directly to C-Node
-        processed_input = v_node.process_message(input_json.copy())
         v_to_c.put(processed_input)
         
         # Wait for direct response from C-Node
@@ -84,9 +87,7 @@ def mesh_bridge(input_json, processor_function, agent_name: str = "unknown"):
         
     
         # V-Node processes input and sends to relay
-        processed_input = v_node.process_message(input_json.copy())
-        v_node_output_size_kb = get_size_kb(processed_input)
-        print(f"[Metrics] V-Node output size: {v_node_output_size_kb:.4f} KB")
+        print(f"[Metrics] V-Node output size: {vnode_output_kb:.4f} KB")
         v_to_relay.put(processed_input)
         
         # Wait for response to come back through the mesh
@@ -104,6 +105,7 @@ def mesh_bridge(input_json, processor_function, agent_name: str = "unknown"):
     final_size_kb = get_size_kb(response_json)
     print(f"[Metrics] Final response size: {final_size_kb:.4f} KB")
     
+    mesh_metrics.add_call(initial_size_kb, vnode_output_kb, final_size_kb)
     print("[V-Node] Response received from mesh")
     print("="*50)
     print("MESH BRIDGE - Processing Complete")

@@ -10,6 +10,7 @@ from prompts.disaster_prompt import disaster_system_prompt
 from utils.global_history import start_new_session, history_manager, add_agent_transition
 
 from utils.agent_creation import maps_api_key, api_key
+from utils.mesh_metrics import mesh_metrics
 
 
 from degraded_prompts.d_crime_prompt import degraded_crime_system_prompt
@@ -87,7 +88,14 @@ def main_multi_agent_system():
             
                 print(f"  Action: {allocation_result['ai_recommendation']}")
                 print(f"  Status: {allocation_result['processing_status'].upper()}")
-
+                # Show mesh metrics summary
+                metrics_summary = mesh_metrics.get_summary()
+                if metrics_summary['total_calls'] > 0:
+                    print(f"\n📊 MESH BANDWIDTH SUMMARY:")
+                    print(f"  Total Mesh Calls: {metrics_summary['total_calls']}")
+                    print(f"  Total Data Sent: {metrics_summary['total_initial_kb']:.4f} KB")
+                    print(f"  Total Data Received: {metrics_summary['total_final_kb']:.4f} KB")
+                    print(f"  Total Bandwidth Used: {metrics_summary['total_bandwidth_kb']:.4f} KB")
                 current_agent = None
             else:
                 current_agent = result.lower() if result else None
