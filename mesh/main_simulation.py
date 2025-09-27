@@ -1,21 +1,33 @@
 from multiprocessing import Queue, Process
-from mesh.agent_logic import VNode, run_relay_worker, run_c_worker
+from mesh.agent_logic import VNode,CNode, run_relay_worker, run_c_worker
 
 
-def mesh_bridge(input_json, processor_function):
+def mesh_bridge(input_json, processor_function, network_type="bluetooth"):
     """
-    Simple mesh bridge function that takes JSON input and returns JSON response.
-    
     Args:
-        input_json (dict): Input message with fields like message_type, network_type, data
-        processor_function (callable): Function that processes the message at C-Node
-    
-    Returns:
-        dict: Response JSON with same structure
+        input_json (dict): Input message 
+        processor_function (callable): Function that processes the message
+        network_type (str): "wifi" for direct route, "bluetooth" for relay route
     """
     print("\n" + "="*50)
     print("MESH BRIDGE - Message Processing Started")
     print("="*50)
+    print(f"\n[MESH] Using {network_type.upper()} routing")
+    
+    if network_type.lower() == "wifi":
+        print("Direct WiFi Route: V-Node → C-Node")
+        
+        v_node = VNode("V-NODE")
+        c_node = CNode("C-NODE")
+        
+        processed_input = v_node.process_message(input_json.copy())
+        processed_input["network_type"] = "wifi"
+        
+        response_json = c_node.process_message(processed_input, processor_function, use_direct_route=True)
+        
+    else:
+        print("Bluetooth Route: V-Node → Relay → C-Node")
+    
     
     # Create communication queues
     v_to_relay = Queue()

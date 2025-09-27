@@ -45,7 +45,11 @@ class CNode:
     def __init__(self, node_id):
         self.node_id = node_id
     
-    def process_message(self, message_json, processor_function):
+    def process_message(self, message_json, processor_function, use_direct_route=False):
+        if use_direct_route:
+            print(f"[C-Node] DIRECT WiFi route - bypassing relay")
+        else:
+            print(f"[C-Node] Bluetooth route - via relay network")
         print(f"[C-Node] Final destination reached: {message_json}")
         
         # Update path

@@ -22,17 +22,23 @@ def run_routing_agent():
     print("👮 Emergency Routing Agent is active.")
     print("------------------------------------------------\n")
     
+    network_choice = input("Select network type (wifi/bluetooth): ").lower()
+    if network_choice not in ["wifi", "bluetooth"]:
+        network_choice = "bluetooth"
+    
+    print(f"Using {network_choice.upper()} network for this session.\n")
+
     while True:
         user_input = input("You: ")
         if user_input.lower() in ["quit", "exit"]:
             print("Agent: Ending conversation. Stay safe.")
             break
-        
+
         user_json = {
             "data" : user_input 
         }
 
-        response = mesh_bridge(user_json, chat.send_message)
+        response = mesh_bridge(user_json, chat.send_message, network_choice)
 
         print(response)
 
