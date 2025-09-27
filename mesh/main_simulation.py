@@ -1,5 +1,5 @@
 from multiprocessing import Queue, Process
-from agent_logic import VNode, run_relay_worker, run_c_worker
+from mesh.agent_logic import VNode, run_relay_worker, run_c_worker
 
 
 def mesh_bridge(input_json, processor_function):

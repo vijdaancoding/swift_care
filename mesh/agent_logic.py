@@ -50,16 +50,25 @@ class CNode:
         
         # Update path
         message_json["path"].append("C-Node")
+
+        user_message = message_json.get("data", "")
         
         # Call the user's processor function
         print(f"[C-Node] Calling user processor function...")
-        response_data = processor_function(message_json)
+        response_data = processor_function(user_message)
+
+        if hasattr(response_data, "text"):
+            response_text = response_data.text
+        else:
+            response_text = str(response_data)
+
+
         
         # Create response in same JSON structure
         response_json = {
             "message_type": "response",
             "network_type": message_json.get("network_type", "wifi"),
-            "data": response_data,
+            "data": response_text,
             "original_mesh_id": message_json["mesh_id"],
             "response_id": str(uuid.uuid4())[:8],
             "timestamp": time.time(),

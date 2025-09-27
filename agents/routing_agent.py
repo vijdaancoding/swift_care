@@ -2,24 +2,13 @@ import os
 import google.generativeai as genai
 from dotenv import load_dotenv
 
+from mesh.main_simulation import mesh_bridge
+from prompts.routing_prompt import SYSTEM_PROMPT
+
 load_dotenv()
 api_key = os.getenv("GOOGLE_API_KEY")
 genai.configure(api_key=api_key)
 
-SYSTEM_PROMPT = """
-You are an emergency routing agent. Your role is:
-- Greet the user politely and ask what their emergency is.
-- If the user gives a greeting or unrelated response, redirect them back kindly.
-- Collect enough context before deciding whether the issue is:
-  1. Crime (violence, theft, assault, suspicious activity, etc.)
-  2. Disaster (fire, flood, earthquake, accident, etc.)
-  3. Medical (injury, illness, unconsciousness, etc.)
-- IMPORTANT: Do not classify or route based on single vague words like "help", "dying", "emergency".
-- You MUST ask at least two clarifying questions (e.g., what happened, where, who is involved, what symptoms, what caused it) before routing.
-- Only once you have enough detail, respond exactly with:
-  "Routing you to the [CATEGORY] emergency response team now."
-- Until then, keep the conversation natural, empathetic, and professional.
-"""
 
 def create_agent():
     model = genai.GenerativeModel(
@@ -38,11 +27,18 @@ def run_routing_agent():
         if user_input.lower() in ["quit", "exit"]:
             print("Agent: Ending conversation. Stay safe.")
             break
+        
+        user_json = {
+            "data" : user_input 
+        }
 
-        response = chat.send_message(user_input)
-        print("Agent:", response.text)
+        response = mesh_bridge(user_json, chat.send_message)
 
-        if "Routing you to the" in response.text:
+        print(response)
+
+        print("Agent:", response['data'])
+
+        if "Routing you to the" in response['data']:
             print("\n✅ Agent has finished routing. Conversation ended.")
             break
 

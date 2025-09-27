@@ -1,4 +1,4 @@
-from main_simulation import mesh_bridge
+from mesh.main_simulation import mesh_bridge
 
 def my_processor(message_json):
     # Your business logic here
