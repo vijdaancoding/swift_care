@@ -21,7 +21,7 @@ class GlobalHistoryManager:
         self.conversation_history = []
         self.agent_transitions = []
         self.shared_chat = None
-        print(f"📝 Started new session: {self.current_session_id}")
+        #print(f"📝 Started new session: {self.current_session_id}")
     
     def add_message(self, role: str, content: str, agent_name: str = None):
         """Add a message to the global history"""
@@ -36,7 +36,7 @@ class GlobalHistoryManager:
         
         # Print for debugging
         role_label = f"{role.title()}" + (f" ({agent_name})" if agent_name else "")
-        print(f"📝 History: {role_label}: {content[:50]}...")
+        # print(f"📝 History: {role_label}: {content[:50]}...")
     
     def add_agent_transition(self, from_agent: str, to_agent: str, reason: str = None):
         """Record agent transitions"""
@@ -62,7 +62,7 @@ class GlobalHistoryManager:
             )
             self.shared_chat = model.start_chat()
             self.initial_agent = current_agent
-            print(f"🆕 Created shared chat for {current_agent}")
+            #print(f"🆕 Created shared chat for {current_agent}")
         else:
             # Handle agent transition with proper role switching
             if len(self.agent_transitions) > 0:
@@ -76,13 +76,13 @@ You are now acting as the {current_agent.upper()} AGENT, not the {last_transitio
 Your new role and instructions:
 {base_prompt}
 
-Please acknowledge this role change and continue the conversation as the {current_agent} agent, maintaining the context of our previous discussion but following your new role guidelines."""
+Please continue the conversation as the {current_agent} agent, maintaining the context of our previous discussion but following your new role guidelines."""
                     
                     try:
                         response = self.shared_chat.send_message(transition_message)
                         print(f"🔄 Successfully transitioned to {current_agent} agent")
                         # Log this transition (but don't count it as user/assistant conversation)
-                        print(f"🔄 Transition response: {response.text[:100]}...")
+                        print(f"🔄 Transition response: {response.text}")
                     except Exception as e:
                         print(f"⚠️ Could not send transition message: {e}")
         
@@ -117,15 +117,15 @@ Please acknowledge this role change and continue the conversation as the {curren
     
     def print_history_debug(self, last_n: int = 5):
         """Print recent history for debugging"""
-        print(f"\n📊 Recent History (last {last_n} messages):")
-        print("-" * 50)
+        # print(f"\n📊 Recent History (last {last_n} messages):")
+        # print("-" * 50)
         recent = self.conversation_history[-last_n:] if self.conversation_history else []
         
         for i, msg in enumerate(recent, 1):
             role = msg['role'].title()
             agent = f" ({msg.get('agent', 'Unknown')})" if msg.get('agent') else ""
             content = msg['content'][:80] + "..." if len(msg['content']) > 80 else msg['content']
-            print(f"{i}. {role}{agent}: {content}")
+            # print(f"{i}. {role}{agent}: {content}")
         
         if not recent:
             print("No messages yet.")

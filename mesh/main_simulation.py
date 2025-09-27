@@ -12,9 +12,9 @@ def mesh_bridge(input_json, processor_function, agent_name: str = "unknown"):
         processor_function (callable): Function that processes the message
         network_type (str): "wifi" for direct route, "bluetooth" for relay route
     """
-    print("\n" + "="*50)
-    print("MESH BRIDGE - Message Processing Started")
-    print("="*50)
+    # print("\n" + "="*50)
+    # print("MESH BRIDGE - Message Processing Started")
+    # print("="*50)
 
     user_message = input_json.get("data", "")
     add_user(user_message, agent_name)
@@ -38,7 +38,7 @@ def mesh_bridge(input_json, processor_function, agent_name: str = "unknown"):
     # WiFi Direct
     # ----------
     if network_type == "wifi":
-        print("[System] Executing DIRECT WiFi route (V-Node -> C-Node)")
+        # print("[System] Executing DIRECT WiFi route (V-Node -> C-Node)")
         v_to_c = queue.Queue()
         c_to_v = queue.Queue()
 
@@ -52,7 +52,7 @@ def mesh_bridge(input_json, processor_function, agent_name: str = "unknown"):
         v_to_c.put(processed_input)
         
         # Wait for direct response from C-Node
-        print("[V-Node] Waiting for DIRECT response from C-Node...")
+        # print("[V-Node] Waiting for DIRECT response from C-Node...")
         response_json = c_to_v.get(timeout=30)
         c_thread.join(timeout=2)
 
@@ -61,7 +61,7 @@ def mesh_bridge(input_json, processor_function, agent_name: str = "unknown"):
     # ------------
 
     else:
-        print("[System] Executing RELAY MESH (Bluetooth) route")
+        # print("[System] Executing RELAY MESH (Bluetooth) route")
 
     
         # Create communication queues
@@ -91,7 +91,7 @@ def mesh_bridge(input_json, processor_function, agent_name: str = "unknown"):
         v_to_relay.put(processed_input)
         
         # Wait for response to come back through the mesh
-        print("[V-Node] Waiting for response from mesh...")
+        # print("[V-Node] Waiting for response from mesh...")
         response_json = relay_to_v.get(timeout=30)
 
         assistant_message = response_json.get("data", "")
@@ -106,10 +106,10 @@ def mesh_bridge(input_json, processor_function, agent_name: str = "unknown"):
     print(f"[Metrics] Final response size: {final_size_kb:.4f} KB")
     
     mesh_metrics.add_call(initial_size_kb, vnode_output_kb, final_size_kb)
-    print("[V-Node] Response received from mesh")
-    print("="*50)
-    print("MESH BRIDGE - Processing Complete")
-    print("="*50)
+    # print("[V-Node] Response received from mesh")
+    # print("="*50)
+    # print("MESH BRIDGE - Processing Complete")
+    # print("="*50)
     
     return response_json
 

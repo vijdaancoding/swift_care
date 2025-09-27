@@ -2,20 +2,19 @@ import uuid
 import time
 
 
-
 class VNode:
     def __init__(self, node_id):
         self.node_id = node_id
     
     def process_message(self, message_json):
-        print(f"[V-Node] Received: {message_json}")
+        # print(f"[V-Node] Received: {message_json}")
         
         # Add mesh metadata
         message_json["mesh_id"] = str(uuid.uuid4())[:8]
         message_json["timestamp"] = time.time()
         message_json["path"] = ["V-Node"]
         
-        print(f"[V-Node] Processed and forwarding to Relay")
+        # print(f"[V-Node] Processed and forwarding to Relay")
         return message_json
 
 
@@ -24,21 +23,21 @@ class RelayNode:
         self.node_id = node_id
     
     def process_message(self, message_json):
-        print(f"[Relay-Node] Received: {message_json}")
+        # print(f"[Relay-Node] Received: {message_json}")
         
         # Update path
         message_json["path"].append("Relay-Node")
         
-        print(f"[Relay-Node] Forwarding to C-Node")
+        # print(f"[Relay-Node] Forwarding to C-Node")
         return message_json
     
     def process_response(self, response_json):
-        print(f"[Relay-Node] Response received from C-Node")
+        # print(f"[Relay-Node] Response received from C-Node")
         
         # Update path for response
         response_json["path"].append("Relay-Node-Return")
         
-        print(f"[Relay-Node] Forwarding response to V-Node")
+        # print(f"[Relay-Node] Forwarding response to V-Node")
         return response_json
 
 
@@ -47,12 +46,8 @@ class CNode:
         self.node_id = node_id
     
     def process_message(self, message_json, processor_function, use_direct_route=False):
-        if use_direct_route:
-            print(f"[C-Node] DIRECT WiFi route - bypassing relay")
-        else:
-            print(f"[C-Node] Bluetooth route - via relay network")
         
-        print(f"[C-Node] Final destination reached: {message_json}")
+        # print(f"[C-Node] Final destination reached: {message_json}")
         
         # Update path
         message_json["path"].append("C-Node")
@@ -61,7 +56,7 @@ class CNode:
 
 
         # Call the user's processor function
-        print(f"[C-Node] Calling user processor function...")
+        # print(f"[C-Node] Calling user processor function...")
         response_data = processor_function(user_message)
 
         if hasattr(response_data, "text"):
@@ -81,7 +76,7 @@ class CNode:
             "path": message_json["path"] + ["C-Node-Response"]
         }
         
-        print(f"[C-Node] Generated response: {response_json}")
+        # print(f"[C-Node] Generated response: {response_json}")
         return response_json
 
 

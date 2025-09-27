@@ -24,9 +24,9 @@ def create_agent(prompt: str, agent_name: str = "unknown"):
     # Get shared chat instance that maintains history across agents
     chat = get_shared_chat(prompt, agent_name)
     
-    print(f"🤖 Created/Retrieved {agent_name} agent with shared history")
+    # print(f"🤖 Created/Retrieved {agent_name} agent with shared history")
     stats = history_manager.get_stats()
-    print(f"📊 Session stats: {stats['total_messages']} messages, {stats['agent_transitions']} transitions")
+    # print(f"📊 Session stats: {stats['total_messages']} messages, {stats['agent_transitions']} transitions")
     
     return chat
 

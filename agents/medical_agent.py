@@ -24,15 +24,15 @@ Continue the conversation as the medical agent, referencing this context as need
 
     chat = create_agent(enhanced_prompt, agent_name)
 
-    print("👨🏻‍⚕️ Emergency Medical Agent is active.")
-    print(f"💬 Current session has {len(history_manager.conversation_history)} messages")
+    # print("👨🏻‍⚕️ Emergency Medical Agent is active.")
+    # print(f"💬 Current session has {len(history_manager.conversation_history)} messages")
     print("------------------------------------------------\n")
     
     if history_manager.conversation_history:
-        print("📋 Recent conversation context:")
+        # print("📋 Recent conversation context:")
         recent_summary = history_manager.get_history_summary(3)
-        for line in recent_summary.split('\n')[-3:]:  # Last 3 messages
-            print(f"   {line}")
+        # for line in recent_summary.split('\n')[-3:]:  # Last 3 messages
+        #     print(f"   {line}")
         print()
 
     while True:
@@ -46,7 +46,7 @@ Continue the conversation as the medical agent, referencing this context as need
             return "routing"
         elif user_input.lower() == "history":
             # Show full conversation history
-            history_manager.print_history_debug(10)
+            # history_manager.print_history_debug(10)
             continue
         elif user_input.lower() == "summary":
             # Generate medical summary

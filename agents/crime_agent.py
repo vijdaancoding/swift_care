@@ -29,15 +29,15 @@ Continue the conversation as the crime agent, referencing this context as needed
 
     chat = create_agent(enhanced_prompt, agent_name)
 
-    print("👮 Emergency Crime Agent is active.")
-    print(f"💬 Current session has {len(history_manager.conversation_history)} messages")
-    print("------------------------------------------------\n")
+    # print("👮 Emergency Crime Agent is active.")
+    # print(f"💬 Current session has {len(history_manager.conversation_history)} messages")
+    # print("------------------------------------------------\n")
     
     if history_manager.conversation_history:
-        print("📋 Recent conversation context:")
+        # print("📋 Recent conversation context:")
         recent_summary = history_manager.get_history_summary(3)
-        for line in recent_summary.split('\n')[-3:]:  # Last 3 messages
-            print(f"   {line}")
+        # for line in recent_summary.split('\n')[-3:]:  # Last 3 messages
+        #     print(f"   {line}")
         print()
 
     while True:
@@ -51,7 +51,7 @@ Continue the conversation as the crime agent, referencing this context as needed
             return "routing"
         elif user_input.lower() == "history":
             # Show full conversation history
-            history_manager.print_history_debug(10)
+            #history_manager.print_history_debug(10)
             continue
         elif user_input.lower() == "summary":
             # Generate crime report summary
@@ -66,7 +66,7 @@ Continue the conversation as the crime agent, referencing this context as needed
         }
 
         response = mesh_bridge(user_json, chat.send_message, agent_name)
-        print("Crime Agent:", response['data'])
+        # print("Crime Agent:", response['data'])
 
         print(f"🔍 Shared chat history length: {len(chat.history)}")
 
@@ -104,8 +104,8 @@ Continue the conversation as the crime agent, referencing this context as needed
         # 3. Finally, check if we have a valid dictionary containing the specific keys.
         #    This is the single point of exit for a successful triage.
         if isinstance(agent_result, dict) and 'incident_type' in agent_result and 'summary' in agent_result:
-            print("\nAgent: Please stay calm. Medical help is being arranged right now.")
-            print("✅ Medical triage complete. Returning summary.\n")
+            print("\nAgent: Please stay calm.  Help is being arranged right now.")
+            print("✅ Crime triage complete. Returning summary.\n")
             print(agent_result)
             return agent_result
         

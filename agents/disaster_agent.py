@@ -28,15 +28,15 @@ Continue the conversation as the disaster agent, referencing this context as nee
 
     chat = create_agent(enhanced_prompt, agent_name)
 
-    print("🌍 Emergency Disaster Agent is active.")
-    print(f"💬 Current session has {len(history_manager.conversation_history)} messages")
+    # print("🌍 Emergency Disaster Agent is active.")
+    # print(f"💬 Current session has {len(history_manager.conversation_history)} messages")
     print("------------------------------------------------\n")
     
     if history_manager.conversation_history:
-        print("📋 Recent conversation context:")
+        # print("📋 Recent conversation context:")
         recent_summary = history_manager.get_history_summary(3)
-        for line in recent_summary.split('\n')[-3:]:  # Last 3 messages
-            print(f"   {line}")
+        # for line in recent_summary.split('\n')[-3:]:  # Last 3 messages
+        #     print(f"   {line}")
         print()
 
     while True:
@@ -50,7 +50,7 @@ Continue the conversation as the disaster agent, referencing this context as nee
             return "routing"
         elif user_input.lower() == "history":
             # Show full conversation history
-            history_manager.print_history_debug(10)
+            # history_manager.print_history_debug(10)
             continue
         elif user_input.lower() == "summary":
             # Generate disaster summary
@@ -103,8 +103,8 @@ Continue the conversation as the disaster agent, referencing this context as nee
         # 3. Finally, check if we have a valid dictionary containing the specific keys.
         #    This is the single point of exit for a successful triage.
         if isinstance(agent_result, dict) and 'incident_type' in agent_result and 'summary' in agent_result:
-            print("\nAgent: Please stay calm. Medical help is being arranged right now.")
-            print("✅ Medical triage complete. Returning summary.\n")
+            print("\nAgent: Please stay calm. Help is being arranged right now.")
+            print("✅ Disaster triage complete. Returning summary.\n")
             print(agent_result)
             return agent_result
         

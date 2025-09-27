@@ -24,14 +24,16 @@ def main_multi_agent_system():
     """
 
     # Mode selection
-    mode = input("Select mode (1-WiFi, 2-Bluetooth) [Default: 1]: ").strip()
+    mode = input("Select mode (1-WiFi, 2-Bluetooth): ").strip()
     degraded_mode = (mode == "2")
     # Initialize new session
     start_new_session()
     
+    print()
     print("🚀 Multi-Agent Emergency System Started")
-    print("🔄 Centralized history management active")
-    print("="*60)
+    #print("🔄 Centralized history management active")
+    #print("="*60)
+    print()
     
     current_agent = "routing"
     previous_agent = None
@@ -62,7 +64,7 @@ def main_multi_agent_system():
         }
     
     while current_agent:
-        print(f"\n🔄 Current Agent: {current_agent.title()}")
+        #print(f"\n🔄 Current Agent: {current_agent.title()}")
         
         if current_agent.lower() in agents:
             # Record transition if not the first agent

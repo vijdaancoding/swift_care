@@ -8,8 +8,12 @@ def run_routing_agent(prompt: str):
     agent_name = "routing"
 
     chat = create_agent(prompt, agent_name)
-    print("👮 Emergency Routing Agent is active.")
+    print("👮 Frontline Agent is active.")
     print("------------------------------------------------\n")
+
+    print("📡 Mesh Bridge: V-Node 🔗 Relay-Node 🔗 C-Node (Bluetooth ↔ WiFi ↔ Server)")
+    print()
+
     
     while True:
         user_input = input("You: ")
@@ -17,7 +21,7 @@ def run_routing_agent(prompt: str):
             print("Agent: Ending conversation. Stay safe.")
             break
         elif user_input.lower() == "history":
-            history_manager.print_history_debug()
+            # history_manager.print_history_debug()
             continue
         
         user_json = {
@@ -27,7 +31,7 @@ def run_routing_agent(prompt: str):
         response = mesh_bridge(user_json, chat.send_message, agent_name)
         print("Routing Agent:", response['data'])
 
-        print(f"Chat History Length: {len(chat.history)}")
+        # print(f"Chat History Length: {len(chat.history)}")
 
         if "ROUTE:" in response['data']:
             category = response['data'].split("ROUTE:")[-1].strip()
