@@ -6,6 +6,8 @@ from utils.global_history import get_shared_chat, history_manager
 
 load_dotenv()
 api_key = os.getenv("GOOGLE_API_KEY")
+maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+
 genai.configure(api_key=api_key)
 
 def create_agent(prompt: str, agent_name: str = "unknown"):

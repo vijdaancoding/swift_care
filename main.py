@@ -2,11 +2,17 @@ from agents.routing_agent import run_routing_agent
 from agents.medical_agent import run_medical_agent
 from agents.crime_agent import run_crime_agent
 from agents.disaster_agent import run_disaster_agent
+from agents.allocator_agent import AllocatorAgent
 from prompts.routing_prompt import routing_system_prompt
 from prompts.medical_prompt import medical_system_prompt
 from prompts.crime_prompt import crime_system_prompt
 from prompts.disaster_prompt import disaster_system_prompt
 from utils.global_history import start_new_session, history_manager, add_agent_transition
+
+from utils.agent_creation import maps_api_key, api_key
+
+import re 
+import json
 
 def main_multi_agent_system():
     """
@@ -21,6 +27,7 @@ def main_multi_agent_system():
     
     current_agent = "routing"
     previous_agent = None
+    allocator_agent = AllocatorAgent(maps_api_key, api_key)
     
     # Agent mapping
     agents = {
@@ -48,14 +55,27 @@ def main_multi_agent_system():
             
             # Run the agent
             result = agents[current_agent.lower()](prompts[current_agent.lower()])
+        
+
+            if isinstance(result, dict) and "incident_type" in result:
+                print("\nForwarding incident summary to Allocator Agent...")
+                allocation_result = allocator_agent.process_incident(result)
+
+                print(f"\n DISPATCH REPORT:")
+                print(f"  Location: {allocation_result['location_reported']}")
+
+                if allocation_result['facility_found']:
+                    facility = allocation_result['nearest_facility']
+                    print(f"  Target: {facility['name']} ({facility['distance_km']} km)")
+                else:
+                    print(f"  Target: Standard Emergency Response")
             
-            # Update for next iteration
-            previous_agent = current_agent
-            
-            if result:
-                current_agent = result.lower()
-            else:
+                print(f"  Action: {allocation_result['ai_recommendation']}")
+                print(f"  Status: {allocation_result['processing_status'].upper()}")
+
                 current_agent = None
+            else:
+                current_agent = result.lower() if result else None
                 
         else:
             print(f"❌ Unknown agent: {current_agent}")

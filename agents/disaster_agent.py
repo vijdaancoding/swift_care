@@ -71,7 +71,7 @@ Continue the conversation as the disaster agent, referencing this context as nee
 
             print("\nAgent: Thank you. Emergency services are being notified immediately.")
             print("✅ Disaster report complete. Returning summary.\n")
-
+        
             return summary
     
     return None
