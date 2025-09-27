@@ -60,17 +60,7 @@ def main_multi_agent_system():
                 allocation_result = allocator_agent.process_incident(result)
 
                 print(f"\n DISPATCH REPORT:")
-                print(f"  Location: {allocation_result['location_reported']}")
-
-                if allocation_result['facility_found']:
-                    facility = allocation_result['nearest_facility']
-                    print(f"  Target: {facility['name']} ({facility['distance_km']} km)")
-                else:
-                    print(f"  Target: Standard Emergency Response")
-            
-                print(f"  Action: {allocation_result['ai_recommendation']}")
-                print(f"  Status: {allocation_result['processing_status'].upper()}")
-
+                print(allocation_result)
                 current_agent = None
             else:
                 current_agent = result.lower() if result else None

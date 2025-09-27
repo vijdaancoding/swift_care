@@ -150,143 +150,6 @@
             overflow-y: auto;
         }
 
-        .content-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .output-area {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            background: white;
-            max-height: 400px;
-        }
-
-        .chat-area {
-            background: #f8f9fa;
-            border-top: 1px solid #e9ecef;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .chat-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .chat-title {
-            font-weight: 600;
-            color: #333;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .chat-status {
-            font-size: 0.9em;
-            color: #666;
-            padding: 5px 10px;
-            background: #fff;
-            border-radius: 15px;
-            border: 1px solid #ddd;
-        }
-
-        .chat-input-container {
-            display: flex;
-            gap: 10px;
-            align-items: flex-end;
-        }
-
-        .chat-input {
-            flex: 1;
-            min-height: 40px;
-            max-height: 120px;
-            padding: 12px 16px;
-            border: 2px solid #ddd;
-            border-radius: 20px;
-            font-family: inherit;
-            font-size: 14px;
-            resize: none;
-            transition: border-color 0.3s ease;
-            outline: none;
-        }
-
-        .chat-input:focus {
-            border-color: #4CAF50;
-            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
-        }
-
-        .chat-input::placeholder {
-            color: #999;
-        }
-
-        .send-btn {
-            padding: 12px 20px;
-            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-            color: white;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .send-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .send-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .chat-examples {
-            background: white;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 10px;
-        }
-
-        .example-title {
-            font-size: 0.9em;
-            font-weight: 600;
-            color: #666;
-            margin-bottom: 10px;
-        }
-
-        .example-messages {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .example-msg {
-            background: #e3f2fd;
-            color: #1976d2;
-            padding: 6px 12px;
-            border-radius: 15px;
-            font-size: 0.85em;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid #bbdefb;
-        }
-
-        .example-msg:hover {
-            background: #bbdefb;
-            transform: translateY(-1px);
-        }
-
         .agent-list {
             margin-bottom: 30px;
         }
@@ -321,6 +184,14 @@
         .agent-status {
             font-size: 0.9em;
             color: #666;
+        }
+
+        .output-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: white;
+            max-height: 600px;
         }
 
         .message {
@@ -360,11 +231,6 @@
         .message.dispatch {
             background: linear-gradient(135deg, #fff3e0 0%, #fffaf0 100%);
             border-left: 4px solid #ff9800;
-        }
-
-        .message.user {
-            background: linear-gradient(135deg, #f3e5f5 0%, #fce4ec 100%);
-            border-left: 4px solid #9c27b0;
         }
 
         .message-header {
@@ -475,36 +341,6 @@
 
         .notification.show {
             transform: translateX(0);
-        }
-
-        .typing-indicator {
-            display: none;
-            align-items: center;
-            gap: 8px;
-            color: #666;
-            font-style: italic;
-            margin-top: 10px;
-        }
-
-        .typing-dots {
-            display: flex;
-            gap: 4px;
-        }
-
-        .typing-dot {
-            width: 6px;
-            height: 6px;
-            background: #666;
-            border-radius: 50%;
-            animation: typing 1.4s infinite ease-in-out;
-        }
-
-        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
-        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-
-        @keyframes typing {
-            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
-            40% { transform: scale(1.2); opacity: 1; }
         }
 
         @media (max-width: 768px) {
@@ -619,64 +455,17 @@
                 </div>
             </div>
 
-            <div class="content-area">
-                <div class="output-area" id="outputArea">
-                    <div class="message system">
-                        <div class="message-header">
-                            <span class="message-type">System</span>
-                            <span class="message-time" id="startTime"></span>
-                        </div>
-                        <div class="message-content">🚀 Emergency Multi-Agent System UI Ready
+            <div class="output-area" id="outputArea">
+                <div class="message system">
+                    <div class="message-header">
+                        <span class="message-type">System</span>
+                        <span class="message-time" id="startTime"></span>
+                    </div>
+                    <div class="message-content">🚀 Emergency Multi-Agent System UI Ready
 🔄 Flask + Socket.IO integration active
-💬 Interactive chat interface enabled
 ============================================================
 
-Start the system and begin chatting with agents...</div>
-                    </div>
-                </div>
-
-                <div class="chat-area">
-                    <div class="chat-header">
-                        <div class="chat-title">
-                            <span>💬</span>
-                            <span>Chat with Agents</span>
-                        </div>
-                        <div class="chat-status" id="chatStatus">System Ready</div>
-                    </div>
-                    
-                    <div class="chat-input-container">
-                        <textarea 
-                            id="chatInput" 
-                            class="chat-input" 
-                            placeholder="Describe your emergency or ask for help... (e.g., 'There's been a car accident on Main Street')"
-                            rows="1"
-                            disabled
-                        ></textarea>
-                        <button id="sendBtn" class="send-btn" onclick="sendMessage()" disabled>
-                            <span>📤</span>
-                            <span>Send</span>
-                        </button>
-                    </div>
-
-                    <div class="typing-indicator" id="typingIndicator">
-                        <span>Agent is typing</span>
-                        <div class="typing-dots">
-                            <div class="typing-dot"></div>
-                            <div class="typing-dot"></div>
-                            <div class="typing-dot"></div>
-                        </div>
-                    </div>
-
-                    <div class="chat-examples">
-                        <div class="example-title">💡 Try these example messages:</div>
-                        <div class="example-messages">
-                            <span class="example-msg" onclick="fillExample('There has been a car accident at the intersection of Oak and Main Street. Multiple injuries reported.')">🚗 Car Accident</span>
-                            <span class="example-msg" onclick="fillExample('Medical emergency - person having chest pains at 123 Elm Street')">🏥 Medical Emergency</span>
-                            <span class="example-msg" onclick="fillExample('Armed robbery in progress at First National Bank downtown')">🚨 Crime Report</span>
-                            <span class="example-msg" onclick="fillExample('Severe flooding reported in residential area, evacuation may be needed')">🌊 Disaster Alert</span>
-                            <span class="example-msg" onclick="fillExample('What emergency services are available in my area?')">❓ General Inquiry</span>
-                        </div>
-                    </div>
+Waiting for system start...</div>
                 </div>
             </div>
         </div>
@@ -708,14 +497,10 @@ Start the system and begin chatting with agents...</div>
         socket.on('disconnect', function() {
             updateConnectionStatus(false);
             showNotification('Disconnected from server', 'error');
-            disableChatInterface();
         });
 
         socket.on('new_message', function(data) {
             addMessage(data.type, data.content, data.agent, data.timestamp);
-            if (data.type === 'agent') {
-                hideTypingIndicator();
-            }
         });
 
         socket.on('agent_changed', function(data) {
@@ -760,7 +545,6 @@ Start the system and begin chatting with agents...</div>
                     stopBtn.disabled = false;
                     stopBtn.style.display = 'flex';
                     
-                    enableChatInterface();
                     startStatusTimer();
                     showNotification('System started successfully!', 'success');
                 } else {
@@ -800,7 +584,6 @@ Start the system and begin chatting with agents...</div>
                     startBtn.disabled = false;
                     stopBtn.style.display = 'none';
                     
-                    disableChatInterface();
                     stopStatusTimer();
                     showNotification('System stopped successfully!', 'success');
                 } else {
@@ -872,98 +655,6 @@ Start the system and begin chatting with agents...</div>
             }
         }
 
-        // Chat functionality
-        async function sendMessage() {
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-            
-            if (!message) {
-                showNotification('Please enter a message', 'error');
-                return;
-            }
-            
-            if (!systemRunning) {
-                showNotification('System must be running to send messages', 'error');
-                return;
-            }
-            
-            const sendBtn = document.getElementById('sendBtn');
-            sendBtn.disabled = true;
-            sendBtn.innerHTML = '<span class="loading"></span> Sending...';
-            
-            try {
-                const response = await fetch('/api/chat/send', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: message })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    input.value = '';
-                    autoResize(input);
-                    showTypingIndicator();
-                    updateChatStatus(`Processing with ${data.agent} agent...`);
-                } else {
-                    throw new Error(data.error || 'Failed to send message');
-                }
-            } catch (error) {
-                console.error('Error sending message:', error);
-                showNotification('Failed to send message: ' + error.message, 'error');
-            } finally {
-                sendBtn.disabled = false;
-                sendBtn.innerHTML = '<span>📤</span> Send';
-            }
-        }
-
-        function fillExample(exampleText) {
-            const input = document.getElementById('chatInput');
-            input.value = exampleText;
-            autoResize(input);
-            input.focus();
-        }
-
-        function enableChatInterface() {
-            const input = document.getElementById('chatInput');
-            const sendBtn = document.getElementById('sendBtn');
-            
-            input.disabled = false;
-            sendBtn.disabled = false;
-            input.placeholder = `Describe your emergency to the ${currentAgent} agent...`;
-            
-            updateChatStatus('Ready to chat');
-        }
-
-        function disableChatInterface() {
-            const input = document.getElementById('chatInput');
-            const sendBtn = document.getElementById('sendBtn');
-            
-            input.disabled = true;
-            sendBtn.disabled = true;
-            input.placeholder = 'Start the system to begin chatting...';
-            
-            updateChatStatus('System not running');
-            hideTypingIndicator();
-        }
-
-        function updateChatStatus(status) {
-            document.getElementById('chatStatus').textContent = status;
-        }
-
-        function showTypingIndicator() {
-            document.getElementById('typingIndicator').style.display = 'flex';
-        }
-
-        function hideTypingIndicator() {
-            document.getElementById('typingIndicator').style.display = 'none';
-        }
-
-        function autoResize(textarea) {
-            textarea.style.height = 'auto';
-            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
-        }
-
         function clearOutput() {
             const outputArea = document.getElementById('outputArea');
             outputArea.innerHTML = `
@@ -1009,23 +700,15 @@ Start the system and begin chatting with agents...</div>
                 document.getElementById('startBtn').style.display = 'none';
                 document.getElementById('stopBtn').style.display = 'flex';
                 document.getElementById('stopBtn').disabled = false;
-                enableChatInterface();
                 startStatusTimer();
             } else {
                 updateStatus('System Stopped', 'stopped');
                 document.getElementById('startBtn').style.display = 'flex';
                 document.getElementById('stopBtn').style.display = 'none';
-                disableChatInterface();
                 stopStatusTimer();
             }
             
             setActiveAgent(currentAgent);
-            
-            // Update chat interface based on current agent
-            if (systemRunning) {
-                updateChatStatus(`Chatting with ${currentAgent} agent`);
-                document.getElementById('chatInput').placeholder = `Describe your emergency to the ${currentAgent} agent...`;
-            }
             
             if (data.duration) {
                 const minutes = Math.floor(data.duration / 60);
@@ -1056,12 +739,6 @@ Start the system and begin chatting with agents...</div>
             
             currentAgent = agentName;
             document.getElementById('currentAgent').textContent = agentName;
-            
-            // Update chat interface
-            if (systemRunning) {
-                updateChatStatus(`Chatting with ${agentName} agent`);
-                document.getElementById('chatInput').placeholder = `Describe your emergency to the ${agentName} agent...`;
-            }
         }
 
         function addMessage(type, content, agent = null, timestamp = null) {
@@ -1134,32 +811,6 @@ Start the system and begin chatting with agents...</div>
         document.addEventListener('DOMContentLoaded', function() {
             // Hide stop button initially
             document.getElementById('stopBtn').style.display = 'none';
-            
-            // Set up chat input handlers
-            const chatInput = document.getElementById('chatInput');
-            
-            // Auto-resize textarea
-            chatInput.addEventListener('input', function() {
-                autoResize(this);
-            });
-            
-            // Handle Enter key (Shift+Enter for new line)
-            chatInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                }
-            });
-            
-            // Focus on chat input when system starts
-            const startBtn = document.getElementById('startBtn');
-            startBtn.addEventListener('click', function() {
-                setTimeout(() => {
-                    if (systemRunning) {
-                        chatInput.focus();
-                    }
-                }, 1000);
-            });
         });
     </script>
 </body>
