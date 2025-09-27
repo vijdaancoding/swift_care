@@ -9,7 +9,6 @@ class AllocatorAgent:
     Allocator Agent using the New Google Places API (v1).
     """
     def __init__(self, maps_api_key, api_key):
-        print(f"API KEY {maps_api_key}")
         if not api_key or not maps_api_key:
             raise ValueError(
                 "API keys for Gemini and Google Maps must be set as environment variables."
