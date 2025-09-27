@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Agent System Orchestrator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Multi-Agent Emergency System Orchestrator</h1>
+            <div id="status-light" class="status-disconnected"></div>
+            <span id="status-text">Disconnected</span>
+        </header>
+
+        <div class="main-grid">
+            <div class="grid-item agent-flow-card">
+                <h2>Agent Flow</h2>
+                <div id="agent-flow"></div>
+            </div>
+
+            <div class="grid-item conversation-card">
+                <h2>Conversation Log</h2>
+                <div id="conversation-log"></div>
+            </div>
+            
+            <div class="grid-item mesh-card">
+                <h2>Mesh Network Simulation</h2>
+                <div id="mesh-simulation">
+                     <div class="mesh-node" id="v-node">V-Node</div>
+                     <div class="mesh-node" id="relay-node">Relay</div>
+                     <div class="mesh-node" id="c-node">C-Node</div>
+                </div>
+            </div>
+
+            <div class="grid-item dispatch-card">
+                <h2>Dispatch Report</h2>
+                <div id="dispatch-report">
+                    <p class="placeholder">Waiting for final report...</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Real-time visualization of the agentic workflow.</p>
+        </footer>
+    </div>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
