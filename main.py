@@ -12,10 +12,19 @@ from utils.global_history import start_new_session, history_manager, add_agent_t
 from utils.agent_creation import maps_api_key, api_key
 
 
+from degraded_prompts.d_crime_prompt import degraded_crime_system_prompt
+from degraded_prompts.d_disaster_prompt import degraded_disaster_system_prompt
+from degraded_prompts.d_medical_prompt import degraded_medical_system_prompt
+from degraded_prompts.d_routing_prompt import degraded_routing_system_prompt
+
 def main_multi_agent_system():
     """
     Main system with centralized history management
     """
+
+    # Mode selection
+    mode = input("Select mode (1-WiFi, 2-Bluetooth) [Default: 1]: ").strip()
+    degraded_mode = (mode == "2")
     # Initialize new session
     start_new_session()
     
@@ -35,13 +44,21 @@ def main_multi_agent_system():
         "disaster": run_disaster_agent
     }
     
-    # Prompt mapping
-    prompts = {
-        "routing": routing_system_prompt,
-        "medical": medical_system_prompt,
-        "crime": crime_system_prompt,
-        "disaster": disaster_system_prompt
-    }
+        # Prompt selection
+    if degraded_mode:
+        prompts = {
+            "routing": degraded_routing_system_prompt,
+            "medical": degraded_medical_system_prompt,
+            "crime": degraded_crime_system_prompt,
+            "disaster": degraded_disaster_system_prompt
+        }
+    else:
+        prompts = {
+            "routing": routing_system_prompt,
+            "medical": medical_system_prompt,
+            "crime": crime_system_prompt,
+            "disaster": disaster_system_prompt
+        }
     
     while current_agent:
         print(f"\n🔄 Current Agent: {current_agent.title()}")
