@@ -6,14 +6,10 @@ from utils.global_history import add_user, add_model
 
 def mesh_bridge(input_json, processor_function, agent_name: str = "unknown"):
     """
-    Simple mesh bridge function that takes JSON input and returns JSON response.
-    
     Args:
-        input_json (dict): Input message with fields like message_type, network_type, data
-        processor_function (callable): Function that processes the message at C-Node
-    
-    Returns:
-        dict: Response JSON with same structure
+        input_json (dict): Input message 
+        processor_function (callable): Function that processes the message
+        network_type (str): "wifi" for direct route, "bluetooth" for relay route
     """
     print("\n" + "="*50)
     print("MESH BRIDGE - Message Processing Started")
