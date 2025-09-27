@@ -11,8 +11,6 @@ from utils.global_history import start_new_session, history_manager, add_agent_t
 
 from utils.agent_creation import maps_api_key, api_key
 
-import re 
-import json
 
 def main_multi_agent_system():
     """
