@@ -1,24 +1,13 @@
-import os
-import google.generativeai as genai
-from dotenv import load_dotenv
-
+from utils.agent_creation import create_agent
+from utils.global_history import history_manager, add_agent_transition
 from mesh.main_simulation import mesh_bridge
-from prompts.routing_prompt import SYSTEM_PROMPT
-
-load_dotenv()
-api_key = os.getenv("GOOGLE_API_KEY")
-genai.configure(api_key=api_key)
 
 
-def create_agent():
-    model = genai.GenerativeModel(
-        model_name="gemini-2.5-flash",
-        system_instruction=SYSTEM_PROMPT
-    )
-    return model.start_chat(history=[])
+def run_routing_agent(prompt: str):
 
-def run_routing_agent():
-    chat = create_agent()
+    agent_name = "routing"
+
+    chat = create_agent(prompt, agent_name)
     print("👮 Emergency Routing Agent is active.")
     print("------------------------------------------------\n")
     
@@ -27,20 +16,25 @@ def run_routing_agent():
         if user_input.lower() in ["quit", "exit"]:
             print("Agent: Ending conversation. Stay safe.")
             break
+        elif user_input.lower() == "history":
+            history_manager.print_history_debug()
+            continue
         
         user_json = {
             "data" : user_input 
         }
 
-        response = mesh_bridge(user_json, chat.send_message)
+        response = mesh_bridge(user_json, chat.send_message, agent_name)
+        print("Routing Agent:", response['data'])
 
-        print(response)
+        print(f"Chat History Length: {len(chat.history)}")
 
-        print("Agent:", response['data'])
+        if "ROUTE:" in response['data']:
+            category = response['data'].split("ROUTE:")[-1].strip()
+            print(f"\n✅ Routing complete. Handing off to {category} agent...\n")
 
-        if "Routing you to the" in response['data']:
-            print("\n✅ Agent has finished routing. Conversation ended.")
-            break
+            add_agent_transition(agent_name, category.lower(), "Routing Decision")
 
-if __name__ == "__main__":
-    run_routing_agent()
+            return category
+        
+    return None
