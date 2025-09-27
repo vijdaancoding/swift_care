@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swift Care Emergency Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <style>
+        .chatbot-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chatbot-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--primary-accent);
+        }
+
+        .chatbot-header h1 {
+            font-family: var(--font-heading);
+            color: #fff;
+            margin: 0 0 0.5rem 0;
+            font-size: 2.5rem;
+        }
+
+        .chatbot-subtitle {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .status-light {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #e74c3c;
+            transition: background-color 0.3s ease;
+        }
+
+        .status-light.connected {
+            background-color: #2ecc71;
+        }
+
+        .status-light.processing {
+            background-color: #f39c12;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-text {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--secondary-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 1px solid #2a3b5e;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .message {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .message.user {
+            align-items: flex-end;
+        }
+
+        .message.agent {
+            align-items: flex-start;
+        }
+
+        .message.system {
+            align-items: center;
+        }
+
+        .message-bubble {
+            max-width: 80%;
+            padding: 1rem 1.5rem;
+            border-radius: 18px;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, var(--primary-accent), #ff6384);
+            color: white;
+            border-bottom-right-radius: 6px;
+        }
+
+        .message.agent .message-bubble {
+            background: linear-gradient(135deg, var(--secondary-bg), var(--card-bg));
+            color: var(--text-light);
+            border: 1px solid #2a3b5e;
+            border-bottom-left-radius: 6px;
+        }
+
+        .message.system .message-bubble {
+            background: rgba(52, 152, 219, 0.2);
+            color: var(--system-accent);
+            border: 1px solid var(--system-accent);
+            border-radius: 12px;
+            font-style: italic;
+            text-align: center;
+            max-width: 60%;
+        }
+
+        .message-label {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            opacity: 0.7;
+            margin-bottom: 0.25rem;
+        }
+
+        .message.user .message-label {
+            text-align: right;
+        }
+
+        .message.agent .message-label {
+            text-align: left;
+        }
+
+        .chat-input-container {
+            padding: 1.5rem;
+            border-top: 1px solid #2a3b5e;
+            background-color: var(--card-bg);
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background-color: var(--secondary-bg);
+            border: 1px solid #2a3b5e;
+            border-radius: 25px;
+            color: var(--text-light);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .chat-input:focus {
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 0 2px rgba(233, 69, 96, 0.2);
+        }
+
+        .chat-input::placeholder {
+            color: #7f8c8d;
+        }
+
+        .send-button {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--primary-accent), #ff6384);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(233, 69, 96, 0.4);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .quick-action {
+            padding: 0.5rem 1rem;
+            background-color: rgba(233, 69, 96, 0.2);
+            color: var(--primary-accent);
+            border: 1px solid var(--primary-accent);
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quick-action:hover {
+            background-color: var(--primary-accent);
+            color: white;
+        }
+
+        .loading-indicator {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--system-accent);
+            font-style: italic;
+        }
+
+        .loading-dots {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .loading-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--system-accent);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
+        .loading-dot:nth-child(3) { animation-delay: 0s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        .welcome-message {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-light);
+        }
+
+        .welcome-message h3 {
+            color: var(--primary-accent);
+            margin-bottom: 1rem;
+        }
+
+        .welcome-message p {
+            margin-bottom: 0.5rem;
+            opacity: 0.8;
+        }
+
+        .example-prompts {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        .example-prompts strong {
+            color: var(--secondary-accent);
+        }
+
+        @media (max-width: 768px) {
+            .chatbot-container {
+                padding: 1rem;
+            }
+
+            .chatbot-header h1 {
+                font-size: 2rem;
+            }
+
+            .message-bubble {
+                max-width: 90%;
+            }
+
+            .chat-input-wrapper {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .send-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chatbot-container">
+        <div class="chatbot-header">
+            <h1>🚨 Swift Care Emergency System</h1>
+            <div class="chatbot-subtitle">AI-Powered Emergency Response Assistant</div>
+            
+            <div class="status-indicator">
+                <div class="status-light" id="status-light"></div>
+                <span class="status-text" id="status-text">Connecting...</span>
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-messages" id="chat-messages">
+                <div class="welcome-message">
+                    <h3>Welcome to Swift Care Emergency System</h3>
+                    <p>I'm your AI emergency response assistant. I can help you report emergencies, get medical assistance, and coordinate emergency services.</p>
+                    <p>Simply describe your emergency situation and I'll process it through our multi-agent system to provide the best response.</p>
+                    
+                    <div class="example-prompts">
+                        <strong>Try these examples:</strong><br>
+                        "I need medical help for chest pain"<br>
+                        "There's a fire in my building"<br>
+                        "Car accident on Main Street"
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-container">
+                <div class="quick-actions">
+                    <div class="quick-action" onclick="sendQuickMessage('I need medical help for chest pain')">Medical Emergency</div>
+                    <div class="quick-action" onclick="sendQuickMessage('There is a fire in my building')">Fire Emergency</div>
+                    <div class="quick-action" onclick="sendQuickMessage('Car accident on the road')">Traffic Accident</div>
+                    <div class="quick-action" onclick="sendQuickMessage('I need police assistance')">Police Help</div>
+                </div>
+
+                <div class="loading-indicator" id="loading-indicator">
+                    <span>Processing emergency report</span>
+                    <div class="loading-dots">
+                        <div class="loading-dot"></div>
+                        <div class="loading-dot"></div>
+                        <div class="loading-dot"></div>
+                    </div>
+                </div>
+
+                <div class="chat-input-wrapper">
+                    <input type="text" id="chat-input" class="chat-input" placeholder="Describe your emergency situation..." maxlength="500">
+                    <button id="send-button" class="send-button" onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Socket.IO connection
+        const socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+        
+        // DOM elements
+        const statusLight = document.getElementById('status-light');
+        const statusText = document.getElementById('status-text');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const sendButton = document.getElementById('send-button');
+        const loadingIndicator = document.getElementById('loading-indicator');
+
+        let isProcessing = false;
+
+        // Socket.IO event handlers
+        socket.on('connect', () => {
+            statusLight.classList.add('connected');
+            statusText.textContent = 'Connected';
+        });
+
+        socket.on('disconnect', () => {
+            statusLight.classList.remove('connected');
+            statusText.textContent = 'Disconnected';
+        });
+
+        socket.on('status', (data) => {
+            console.log('Status:', data.data);
+        });
+
+        socket.on('agent_response', (data) => {
+            addMessage(data.data, 'system');
+            showLoading(true);
+        });
+
+        socket.on('new_output', (data) => {
+            const line = data.data.trim();
+            
+            if (line === "---END_OF_SESSION---") {
+                showLoading(false);
+                isProcessing = false;
+                statusLight.classList.remove('processing');
+                statusText.textContent = 'Connected';
+                return;
+            }
+
+            // Show processing status
+            if (!isProcessing && line.includes('Multi-Agent Emergency System Started')) {
+                isProcessing = true;
+                statusLight.classList.add('processing');
+                statusText.textContent = 'Processing Emergency Report...';
+            }
+
+            // Add relevant messages to chat
+            if (line.startsWith('You:')) {
+                const userMessage = line.substring(4).trim();
+                addMessage(userMessage, 'user');
+            } else if (line.includes('DISPATCH REPORT:')) {
+                showLoading(false);
+                addMessage('Emergency processed successfully! Dispatch report generated.', 'agent');
+            } else if (line.includes('AI recommendation:') || line.includes('Processing Status:')) {
+                addMessage(line, 'agent');
+            }
+        });
+
+        // Message handling functions
+        function addMessage(text, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            const label = document.createElement('div');
+            label.className = 'message-label';
+            label.textContent = type === 'user' ? 'You' : type === 'agent' ? 'Emergency System' : 'System';
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.textContent = text;
+            
+            messageDiv.appendChild(label);
+            messageDiv.appendChild(bubble);
+            chatMessages.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message || isProcessing) return;
+            
+            // Add user message to chat
+            addMessage(message, 'user');
+            
+            // Send to server
+            socket.emit('chat_message', { message: message });
+            
+            // Clear input
+            chatInput.value = '';
+            
+            // Show loading
+            showLoading(true);
+        }
+
+        function sendQuickMessage(message) {
+            if (isProcessing) return;
+            chatInput.value = message;
+            sendMessage();
+        }
+
+        function showLoading(show) {
+            loadingIndicator.style.display = show ? 'flex' : 'none';
+            sendButton.disabled = show;
+        }
+
+        // Event listeners
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        sendButton.addEventListener('click', sendMessage);
+    </script>
+</body>
+</html>

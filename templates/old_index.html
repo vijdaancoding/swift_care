@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Multi-Agent System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+            padding: 20px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            color: white;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .status-bar {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #333 0%, #555 100%);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: monospace;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #666;
+            transition: all 0.3s ease;
+        }
+
+        .status-indicator.running {
+            background: #4CAF50;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.stopped {
+            background: #f44336;
+            box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+
+        .main-content {
+            display: flex;
+            min-height: 600px;
+        }
+
+        .sidebar {
+            width: 320px;
+            background: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .agent-list {
+            margin-bottom: 30px;
+        }
+
+        .agent-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            background: white;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .agent-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .agent-item.active {
+            border-color: #4CAF50;
+            background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+        }
+
+        .agent-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .agent-status {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .output-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: white;
+            max-height: 600px;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            border-radius: 15px;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.system {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f0f8ff 100%);
+            border-left: 4px solid #2196F3;
+        }
+
+        .message.agent {
+            background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+            border-left: 4px solid #4CAF50;
+        }
+
+        .message.error {
+            background: linear-gradient(135deg, #ffebee 0%, #fff5f5 100%);
+            border-left: 4px solid #f44336;
+        }
+
+        .message.dispatch {
+            background: linear-gradient(135deg, #fff3e0 0%, #fffaf0 100%);
+            border-left: 4px solid #ff9800;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .message-type {
+            font-weight: 600;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .message-time {
+            font-size: 0.8em;
+            color: #666;
+            font-family: monospace;
+        }
+
+        .message-content {
+            line-height: 1.6;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .stats-panel {
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .stat-value {
+            color: #666;
+            font-family: monospace;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            z-index: 1000;
+        }
+
+        .connection-status.connected {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .connection-status.disconnected {
+            background: #f44336;
+            color: white;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            padding: 15px 20px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .btn {
+                justify-content: center;
+            }
+            
+            .status-bar {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status" id="connectionStatus">🔌 Connecting...</div>
+    <div class="notification" id="notification"></div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🚨 Emergency Multi-Agent System</h1>
+            <p>Real-time Emergency Response Coordination via Flask + Socket.IO</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" id="startBtn" onclick="startSystem()">
+                <span>🚀</span> Start System
+            </button>
+            <button class="btn btn-danger" id="stopBtn" onclick="stopSystem()" disabled>
+                <span>⏹️</span> Stop System
+            </button>
+            <button class="btn btn-secondary" onclick="clearOutput()">
+                <span>🧹</span> Clear Output
+            </button>
+            <button class="btn btn-secondary" onclick="exportLog()">
+                <span>📥</span> Export Log
+            </button>
+            <button class="btn btn-secondary" onclick="refreshStatus()">
+                <span>🔄</span> Refresh Status
+            </button>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-indicator" id="systemStatus"></div>
+                <span id="statusText">System Ready</span>
+            </div>
+            <div class="status-item">
+                <span>Session: <span id="sessionId">-</span></span>
+            </div>
+            <div class="status-item">
+                <span>Messages: <span id="messageCount">0</span></span>
+            </div>
+            <div class="status-item">
+                <span>Active Time: <span id="activeTime">00:00</span></span>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="agent-list">
+                    <h3 style="margin-bottom: 15px; color: #333;">Active Agents</h3>
+                    <div class="agent-item active" data-agent="routing" onclick="switchAgent('routing')">
+                        <div class="agent-name">🔄 Routing Agent</div>
+                        <div class="agent-status">Ready</div>
+                    </div>
+                    <div class="agent-item" data-agent="medical" onclick="switchAgent('medical')">
+                        <div class="agent-name">🏥 Medical Agent</div>
+                        <div class="agent-status">Standby</div>
+                    </div>
+                    <div class="agent-item" data-agent="crime" onclick="switchAgent('crime')">
+                        <div class="agent-name">👮 Crime Agent</div>
+                        <div class="agent-status">Standby</div>
+                    </div>
+                    <div class="agent-item" data-agent="disaster" onclick="switchAgent('disaster')">
+                        <div class="agent-name">🌪️ Disaster Agent</div>
+                        <div class="agent-status">Standby</div>
+                    </div>
+                </div>
+
+                <div class="stats-panel">
+                    <h4 style="margin-bottom: 15px; color: #333;">Session Stats</h4>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Messages</span>
+                        <span class="stat-value" id="totalMessages">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Agent Transitions</span>
+                        <span class="stat-value" id="agentTransitions">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Active Time</span>
+                        <span class="stat-value" id="activeTimeStats">00:00</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Current Agent</span>
+                        <span class="stat-value" id="currentAgent">routing</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="output-area" id="outputArea">
+                <div class="message system">
+                    <div class="message-header">
+                        <span class="message-type">System</span>
+                        <span class="message-time" id="startTime"></span>
+                    </div>
+                    <div class="message-content">🚀 Emergency Multi-Agent System UI Ready
+🔄 Flask + Socket.IO integration active
+============================================================
+
+Waiting for system start...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Socket.IO connection
+        const socket = io();
+        
+        // State management
+        let systemRunning = false;
+        let messageCount = 0;
+        let startTime = null;
+        let sessionId = null;
+        let agentTransitions = 0;
+        let currentAgent = 'routing';
+        let statusTimer = null;
+
+        // Initialize
+        document.getElementById('startTime').textContent = new Date().toLocaleTimeString();
+        
+        // Socket event handlers
+        socket.on('connect', function() {
+            updateConnectionStatus(true);
+            showNotification('Connected to server', 'success');
+            refreshStatus();
+        });
+
+        socket.on('disconnect', function() {
+            updateConnectionStatus(false);
+            showNotification('Disconnected from server', 'error');
+        });
+
+        socket.on('new_message', function(data) {
+            addMessage(data.type, data.content, data.agent, data.timestamp);
+        });
+
+        socket.on('agent_changed', function(data) {
+            setActiveAgent(data.new_agent);
+            if (data.old_agent !== data.new_agent) {
+                agentTransitions = data.transitions;
+                document.getElementById('agentTransitions').textContent = agentTransitions;
+            }
+        });
+
+        socket.on('system_status', function(data) {
+            updateSystemStatus(data);
+        });
+
+        // API functions
+        async function startSystem() {
+            if (systemRunning) return;
+            
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            
+            startBtn.disabled = true;
+            startBtn.innerHTML = '<span class="loading"></span> Starting...';
+            
+            try {
+                const response = await fetch('/api/system/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    systemRunning = true;
+                    sessionId = data.session_id;
+                    startTime = new Date();
+                    
+                    document.getElementById('sessionId').textContent = sessionId;
+                    updateStatus('System Running', 'running');
+                    
+                    startBtn.style.display = 'none';
+                    stopBtn.disabled = false;
+                    stopBtn.style.display = 'flex';
+                    
+                    startStatusTimer();
+                    showNotification('System started successfully!', 'success');
+                } else {
+                    throw new Error(data.error || 'Failed to start system');
+                }
+            } catch (error) {
+                console.error('Error starting system:', error);
+                showNotification('Failed to start system: ' + error.message, 'error');
+            } finally {
+                startBtn.disabled = false;
+                startBtn.innerHTML = '<span>🚀</span> Start System';
+            }
+        }
+
+        async function stopSystem() {
+            if (!systemRunning) return;
+            
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            
+            stopBtn.disabled = true;
+            stopBtn.innerHTML = '<span class="loading"></span> Stopping...';
+            
+            try {
+                const response = await fetch('/api/system/stop', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    systemRunning = false;
+                    updateStatus('System Stopped', 'stopped');
+                    
+                    startBtn.style.display = 'flex';
+                    startBtn.disabled = false;
+                    stopBtn.style.display = 'none';
+                    
+                    stopStatusTimer();
+                    showNotification('System stopped successfully!', 'success');
+                } else {
+                    throw new Error(data.error || 'Failed to stop system');
+                }
+            } catch (error) {
+                console.error('Error stopping system:', error);
+                showNotification('Failed to stop system: ' + error.message, 'error');
+            } finally {
+                stopBtn.disabled = false;
+                stopBtn.innerHTML = '<span>⏹️</span> Stop System';
+            }
+        }
+
+        async function switchAgent(agentName) {
+            if (!systemRunning) {
+                showNotification('System must be running to switch agents', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/agent/switch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ agent: agentName })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification(`Switched to ${agentName} agent`, 'success');
+                } else {
+                    throw new Error(data.error || 'Failed to switch agent');
+                }
+            } catch (error) {
+                console.error('Error switching agent:', error);
+                showNotification('Failed to switch agent: ' + error.message, 'error');
+            }
+        }
+
+        async function refreshStatus() {
+            try {
+                const response = await fetch('/api/system/status');
+                const data = await response.json();
+                updateSystemStatus(data);
+            } catch (error) {
+                console.error('Error fetching status:', error);
+                showNotification('Failed to refresh status', 'error');
+            }
+        }
+
+        async function exportLog() {
+            try {
+                const response = await fetch('/api/messages/export');
+                const data = await response.json();
+                
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `emergency_log_${data.session_id || 'unknown'}_${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                showNotification('Log exported successfully!', 'success');
+            } catch (error) {
+                console.error('Error exporting log:', error);
+                showNotification('Failed to export log', 'error');
+            }
+        }
+
+        function clearOutput() {
+            const outputArea = document.getElementById('outputArea');
+            outputArea.innerHTML = `
+                <div class="message system">
+                    <div class="message-header">
+                        <span class="message-type">System</span>
+                        <span class="message-time">${new Date().toLocaleTimeString()}</span>
+                    </div>
+                    <div class="message-content">🧹 Output cleared by user</div>
+                </div>
+            `;
+            messageCount = 0;
+            updateMessageCount();
+        }
+
+        // UI helper functions
+        function updateConnectionStatus(connected) {
+            const statusEl = document.getElementById('connectionStatus');
+            if (connected) {
+                statusEl.textContent = '🟢 Connected';
+                statusEl.className = 'connection-status connected';
+            } else {
+                statusEl.textContent = '🔴 Disconnected';
+                statusEl.className = 'connection-status disconnected';
+            }
+        }
+
+        function updateSystemStatus(data) {
+            systemRunning = data.running;
+            sessionId = data.session_id;
+            messageCount = data.message_count;
+            agentTransitions = data.agent_transitions;
+            currentAgent = data.current_agent;
+            
+            document.getElementById('sessionId').textContent = sessionId || '-';
+            document.getElementById('messageCount').textContent = messageCount;
+            document.getElementById('totalMessages').textContent = messageCount;
+            document.getElementById('agentTransitions').textContent = agentTransitions;
+            document.getElementById('currentAgent').textContent = currentAgent;
+            
+            if (systemRunning) {
+                updateStatus('System Running', 'running');
+                document.getElementById('startBtn').style.display = 'none';
+                document.getElementById('stopBtn').style.display = 'flex';
+                document.getElementById('stopBtn').disabled = false;
+                startStatusTimer();
+            } else {
+                updateStatus('System Stopped', 'stopped');
+                document.getElementById('startBtn').style.display = 'flex';
+                document.getElementById('stopBtn').style.display = 'none';
+                stopStatusTimer();
+            }
+            
+            setActiveAgent(currentAgent);
+            
+            if (data.duration) {
+                const minutes = Math.floor(data.duration / 60);
+                const seconds = data.duration % 60;
+                const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                document.getElementById('activeTime').textContent = timeStr;
+                document.getElementById('activeTimeStats').textContent = timeStr;
+            }
+        }
+
+        function updateStatus(text, status) {
+            document.getElementById('statusText').textContent = text;
+            const indicator = document.getElementById('systemStatus');
+            indicator.className = `status-indicator ${status}`;
+        }
+
+        function setActiveAgent(agentName) {
+            document.querySelectorAll('.agent-item').forEach(item => {
+                item.classList.remove('active');
+                item.querySelector('.agent-status').textContent = 'Standby';
+            });
+            
+            const activeAgent = document.querySelector(`[data-agent="${agentName}"]`);
+            if (activeAgent) {
+                activeAgent.classList.add('active');
+                activeAgent.querySelector('.agent-status').textContent = 'Active';
+            }
+            
+            currentAgent = agentName;
+            document.getElementById('currentAgent').textContent = agentName;
+        }
+
+        function addMessage(type, content, agent = null, timestamp = null) {
+            const outputArea = document.getElementById('outputArea');
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            
+            const time = timestamp || new Date().toLocaleTimeString();
+            const agentInfo = agent ? ` (${agent})` : '';
+            
+            message.innerHTML = `
+                <div class="message-header">
+                    <span class="message-type">${type}${agentInfo}</span>
+                    <span class="message-time">${time}</span>
+                </div>
+                <div class="message-content">${content}</div>
+            `;
+            
+            outputArea.appendChild(message);
+            messageCount++;
+            updateMessageCount();
+            scrollToBottom();
+        }
+
+        function updateMessageCount() {
+            document.getElementById('messageCount').textContent = messageCount;
+            document.getElementById('totalMessages').textContent = messageCount;
+        }
+
+        function scrollToBottom() {
+            const outputArea = document.getElementById('outputArea');
+            outputArea.scrollTop = outputArea.scrollHeight;
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification show ${type}`;
+            
+            setTimeout(() => {
+                notification.className = 'notification';
+            }, 3000);
+        }
+
+        function startStatusTimer() {
+            if (statusTimer) clearInterval(statusTimer);
+            
+            statusTimer = setInterval(() => {
+                if (systemRunning && startTime) {
+                    const now = new Date();
+                    const diff = Math.floor((now - startTime) / 1000);
+                    const minutes = Math.floor(diff / 60);
+                    const seconds = diff % 60;
+                    const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    
+                    document.getElementById('activeTime').textContent = timeStr;
+                    document.getElementById('activeTimeStats').textContent = timeStr;
+                }
+            }, 1000);
+        }
+
+        function stopStatusTimer() {
+            if (statusTimer) {
+                clearInterval(statusTimer);
+                statusTimer = null;
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hide stop button initially
+            document.getElementById('stopBtn').style.display = 'none';
+        });
+    </script>
+</body>
+</html>

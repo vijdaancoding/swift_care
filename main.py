@@ -80,24 +80,7 @@ def main_multi_agent_system():
                 allocation_result = allocator_agent.process_incident(result)
 
                 print(f"\n DISPATCH REPORT:")
-                print(f"  Location: {allocation_result['location_reported']}")
-
-                if allocation_result['facility_found']:
-                    facility = allocation_result['nearest_facility']
-                    print(f"  Target: {facility['name']} ({facility['distance_km']} km)")
-                else:
-                    print(f"  Target: Standard Emergency Response")
-            
-                print(f"  Action: {allocation_result['ai_recommendation']}")
-                print(f"  Status: {allocation_result['processing_status'].upper()}")
-                # Show mesh metrics summary
-                metrics_summary = mesh_metrics.get_summary()
-                if metrics_summary['total_calls'] > 0:
-                    print(f"\n📊 MESH BANDWIDTH SUMMARY:")
-                    print(f"  Total Mesh Calls: {metrics_summary['total_calls']}")
-                    print(f"  Total Data Sent: {metrics_summary['total_initial_kb']:.4f} KB")
-                    print(f"  Total Data Received: {metrics_summary['total_final_kb']:.4f} KB")
-                    print(f"  Total Bandwidth Used: {metrics_summary['total_bandwidth_kb']:.4f} KB")
+                print(allocation_result)
                 current_agent = None
             else:
                 current_agent = result.lower() if result else None
