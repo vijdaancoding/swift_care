@@ -21,7 +21,7 @@ class GlobalHistoryManager:
         self.conversation_history = []
         self.agent_transitions = []
         self.shared_chat = None
-        print(f"📝 Started new session: {self.current_session_id}")
+        print(f"Started new session: {self.current_session_id}")
     
     def add_message(self, role: str, content: str, agent_name: str = None):
         """Add a message to the global history"""
@@ -36,7 +36,7 @@ class GlobalHistoryManager:
         
         # Print for debugging
         role_label = f"{role.title()}" + (f" ({agent_name})" if agent_name else "")
-        print(f"📝 History: {role_label}: {content[:50]}...")
+        print(f"History: {role_label}: {content[:50]}...")
     
     def add_agent_transition(self, from_agent: str, to_agent: str, reason: str = None):
         """Record agent transitions"""
@@ -48,7 +48,7 @@ class GlobalHistoryManager:
             "session_id": self.current_session_id
         }
         self.agent_transitions.append(transition)
-        print(f"🔄 Agent transition: {from_agent} -> {to_agent}")
+        print(f"Agent transition: {from_agent} -> {to_agent}")
     
     def get_or_create_shared_chat(self, base_prompt: str, current_agent: str):
         """
@@ -62,7 +62,7 @@ class GlobalHistoryManager:
             )
             self.shared_chat = model.start_chat()
             self.initial_agent = current_agent
-            print(f"🆕 Created shared chat for {current_agent}")
+            print(f"Created shared chat for {current_agent}")
         else:
             # Handle agent transition with proper role switching
             if len(self.agent_transitions) > 0:
@@ -80,11 +80,11 @@ Please acknowledge this role change and continue the conversation as the {curren
                     
                     try:
                         response = self.shared_chat.send_message(transition_message)
-                        print(f"🔄 Successfully transitioned to {current_agent} agent")
+                        print(f"Successfully transitioned to {current_agent} agent")
                         # Log this transition (but don't count it as user/assistant conversation)
-                        print(f"🔄 Transition response: {response.text[:100]}...")
+                        print(f"Transition response: {response.text[:100]}...")
                     except Exception as e:
-                        print(f"⚠️ Could not send transition message: {e}")
+                        print(f"Could not send transition message: {e}")
         
         return self.shared_chat
     
@@ -117,7 +117,7 @@ Please acknowledge this role change and continue the conversation as the {curren
     
     def print_history_debug(self, last_n: int = 5):
         """Print recent history for debugging"""
-        print(f"\n📊 Recent History (last {last_n} messages):")
+        print(f"\nRecent History (last {last_n} messages):")
         print("-" * 50)
         recent = self.conversation_history[-last_n:] if self.conversation_history else []
         

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Emergency System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+    <h1>Emergency System Debug Page</h1>
+    
+    <div>
+        <h2>Connection Tests</h2>
+        <button onclick="testAPI()">Test API Connection</button>
+        <button onclick="testSocket()">Test Socket.IO Connection</button>
+        <button onclick="testStartSystem()">Test Start System</button>
+        <button onclick="enableChat()">Enable Chat Manually</button>
+    </div>
+    
+    <div>
+        <h2>Results</h2>
+        <div id="results" style="border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; white-space: pre-wrap;"></div>
+    </div>
+    
+    <div>
+        <h2>Chat Test</h2>
+        <textarea id="chatInput" placeholder="Test input..." style="width: 100%; height: 100px;" disabled></textarea>
+        <button id="sendBtn" onclick="sendTest()" disabled>Send Test Message</button>
+    </div>
+
+    <script>
+        const socket = io();
+        const results = document.getElementById('results');
+        
+        function log(message) {
+            results.textContent += new Date().toLocaleTimeString() + ': ' + message + '\n';
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function testAPI() {
+            log('Testing API connection...');
+            fetch('/api/system/status')
+                .then(response => response.json())
+                .then(data => {
+                    log('API Status: ' + JSON.stringify(data, null, 2));
+                })
+                .catch(error => {
+                    log('API Error: ' + error.message);
+                });
+        }
+        
+        function testSocket() {
+            log('Testing Socket.IO connection...');
+            socket.emit('test', 'hello');
+            socket.on('test_response', function(data) {
+                log('Socket.IO Response: ' + data);
+            });
+        }
+        
+        async function testStartSystem() {
+            log('Testing system start...');
+            try {
+                const response = await fetch('/api/system/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                log('Start System Response: ' + JSON.stringify(data, null, 2));
+                
+                if (data.success) {
+                    enableChat();
+                }
+            } catch (error) {
+                log('Start System Error: ' + error.message);
+            }
+        }
+        
+        function enableChat() {
+            const input = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('sendBtn');
+            
+            input.disabled = false;
+            sendBtn.disabled = false;
+            log('Chat interface enabled manually');
+        }
+        
+        function sendTest() {
+            const input = document.getElementById('chatInput');
+            const message = input.value;
+            if (message) {
+                log('Sending test message: ' + message);
+                fetch('/api/chat/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    log('Send Message Response: ' + JSON.stringify(data, null, 2));
+                })
+                .catch(error => {
+                    log('Send Message Error: ' + error.message);
+                });
+            }
+        }
+        
+        // Socket event handlers
+        socket.on('connect', function() {
+            log('Socket.IO connected');
+        });
+        
+        socket.on('disconnect', function() {
+            log('Socket.IO disconnected');
+        });
+        
+        socket.on('new_log', function(data) {
+            log('New log: ' + JSON.stringify(data, null, 2));
+        });
+        
+        socket.on('system_status', function(data) {
+            log('System status: ' + JSON.stringify(data, null, 2));
+        });
+        
+        socket.on('agent_response', function(data) {
+            log('Agent response received: ' + JSON.stringify(data, null, 2));
+        });
+        
+        // Initialize
+        log('Debug page loaded');
+    </script>
+</body>
+</html>

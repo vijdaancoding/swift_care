@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Multi-Agent System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 40px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+            padding: 20px 30px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            color: white;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .status-bar {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #333 0%, #555 100%);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: monospace;
+            flex-wrap: wrap;
+            gap: 20px;
+            flex-shrink: 0;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #666;
+            transition: all 0.3s ease;
+        }
+
+        .status-indicator.running {
+            background: #4CAF50;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.stopped {
+            background: #f44336;
+            box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+        }
+
+        /* LEFT HALF - CHATBOT */
+        .chatbot-panel {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #e9ecef;
+            background: #f8f9fa;
+        }
+
+        .chat-header {
+            padding: 20px;
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-title {
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chat-status {
+            font-size: 0.9em;
+            color: #666;
+            padding: 5px 10px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border: 1px solid #ddd;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: white;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            border-radius: 15px;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f0f8ff 100%);
+            border-left: 4px solid #2196F3;
+            margin-left: 20%;
+        }
+
+        .message.agent {
+            background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+            border-left: 4px solid #4CAF50;
+            margin-right: 20%;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .message-type {
+            font-weight: 600;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .message-time {
+            font-size: 0.8em;
+            color: #666;
+            font-family: monospace;
+        }
+
+        .message-content {
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .chat-input {
+            flex: 1;
+            min-height: 40px;
+            max-height: 120px;
+            padding: 12px 16px;
+            border: 2px solid #ddd;
+            border-radius: 20px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: none;
+            transition: border-color 0.3s ease;
+            outline: none;
+        }
+
+        .chat-input:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .chat-input::placeholder {
+            color: #999;
+        }
+
+        .send-btn {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+            font-style: italic;
+            margin-top: 10px;
+            padding: 10px 20px;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #666;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1.2); opacity: 1; }
+        }
+
+        /* RIGHT HALF - ORCHESTRATION LOGS */
+        .logs-panel {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            background: #1a1a2e;
+        }
+
+        .logs-header {
+            padding: 20px;
+            background: #16213e;
+            border-bottom: 1px solid #2a3b5e;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logs-title {
+            font-weight: 600;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logs-status {
+            font-size: 0.9em;
+            color: #e94560;
+            padding: 5px 10px;
+            background: rgba(233, 69, 96, 0.2);
+            border-radius: 15px;
+            border: 1px solid #e94560;
+        }
+
+        .logs-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #1a1a2e;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .log-entry {
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            animation: fadeIn 0.3s ease;
+            border-left: 3px solid;
+            background: rgba(0, 0, 0, 0.2);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .log-entry.system {
+            border-color: #3498db;
+            color: #bdc3c7;
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        .log-entry.user {
+            border-color: #16c79a;
+            color: #16c79a;
+            background: rgba(22, 199, 154, 0.1);
+        }
+
+        .log-entry.agent {
+            border-color: #e94560;
+            color: #e94560;
+            background: rgba(233, 69, 96, 0.1);
+        }
+
+        .log-entry.dispatch {
+            border-color: #f39c12;
+            color: #f39c12;
+            background: rgba(243, 156, 18, 0.1);
+            font-weight: bold;
+        }
+
+        .log-entry.error {
+            border-color: #e74c3c;
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        .log-timestamp {
+            color: #7f8c8d;
+            font-size: 0.85em;
+            margin-right: 10px;
+        }
+
+        .log-type {
+            color: #fff;
+            font-weight: bold;
+            margin-right: 10px;
+            text-transform: uppercase;
+            font-size: 0.8em;
+        }
+
+        .dispatch-report {
+            background: linear-gradient(135deg, #fff3e0 0%, #fffaf0 100%);
+            border: 2px solid #ff9800;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px;
+            color: #333;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .dispatch-title {
+            font-weight: bold;
+            color: #ff9800;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            z-index: 1000;
+        }
+
+        .connection-status.connected {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .connection-status.disconnected {
+            background: #f44336;
+            color: white;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            padding: 15px 20px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        /* Scrollbar styles */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Dark scrollbar for logs panel */
+        .logs-content::-webkit-scrollbar-track {
+            background: #1a1a2e;
+        }
+        .logs-content::-webkit-scrollbar-thumb {
+            background: #e94560;
+        }
+        .logs-content::-webkit-scrollbar-thumb:hover {
+            background: #ff6384;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .chatbot-panel, .logs-panel {
+                width: 100%;
+            }
+            
+            .chatbot-panel {
+                height: 60vh;
+            }
+            
+            .logs-panel {
+                height: 40vh;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .btn {
+                justify-content: center;
+            }
+            
+            .status-bar {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status" id="connectionStatus">🔌 Connecting...</div>
+    <div class="notification" id="notification"></div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🚨 Emergency Multi-Agent System</h1>
+            <p>Chatbot Interface | Orchestration Logs</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" id="startBtn" onclick="startSystem()">
+                <span>🚀</span> Start System
+            </button>
+            <button class="btn btn-danger" id="stopBtn" onclick="stopSystem()" disabled>
+                <span>⏹️</span> Stop System
+            </button>
+            <button class="btn btn-secondary" onclick="clearChat()">
+                <span>🧹</span> Clear Chat
+            </button>
+            <button class="btn btn-secondary" onclick="clearLogs()">
+                <span>📝</span> Clear Logs
+            </button>
+            <button class="btn btn-secondary" onclick="exportLog()">
+                <span>📥</span> Export Log
+            </button>
+            <button class="btn btn-secondary" onclick="enableChatInterface()" style="background: #ff9800;">
+                <span>🔧</span> Enable Chat (Debug)
+            </button>
+            <button class="btn btn-secondary" onclick="checkSystemStatus()" style="background: #9c27b0;">
+                <span>🔍</span> Check Status
+            </button>
+            <button class="btn btn-secondary" onclick="sendDummyData()" style="background: #4caf50;">
+                <span>🧪</span> Send Dummy Data
+            </button>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-indicator" id="systemStatus"></div>
+                <span id="statusText">System Ready</span>
+            </div>
+            <div class="status-item">
+                <span>Session: <span id="sessionId">-</span></span>
+            </div>
+            <div class="status-item">
+                <span>Current Agent: <span id="currentAgent">-</span></span>
+            </div>
+            <div class="status-item">
+                <span>Messages: <span id="messageCount">0</span></span>
+            </div>
+            <div class="status-item">
+                <span>Active Time: <span id="activeTime">00:00</span></span>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- LEFT HALF - CHATBOT -->
+            <div class="chatbot-panel">
+                <div class="chat-header">
+                    <div class="chat-title">
+                        <span>💬</span>
+                        <span>Emergency Chatbot</span>
+                    </div>
+                    <div class="chat-status" id="chatStatus">System Ready</div>
+                </div>
+                
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message agent">
+                        <div class="message-header">
+                            <span class="message-type">System</span>
+                            <span class="message-time" id="startTime"></span>
+                        </div>
+                        <div class="message-content">🚀 Emergency Multi-Agent System Ready
+💬 Chat with our AI agents about emergencies
+🔄 System will automatically route to appropriate specialists
+📋 Describe your emergency to get started...</div>
+                    </div>
+                </div>
+
+                <div class="typing-indicator" id="typingIndicator">
+                    <span>Agent is typing</span>
+                    <div class="typing-dots">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+
+                <div class="chat-input-container">
+                    <textarea 
+                        id="chatInput" 
+                        class="chat-input" 
+                        placeholder="Click 'Start System' first, then describe your emergency..."
+                        rows="1"
+                        disabled
+                    ></textarea>
+                    <button id="sendBtn" class="send-btn" onclick="sendMessage()" disabled>
+                        <span>📤</span>
+                        <span>Send</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- RIGHT HALF - ORCHESTRATION LOGS -->
+            <div class="logs-panel">
+                <div class="logs-header">
+                    <div class="logs-title">
+                        <span>⚙️</span>
+                        <span>Orchestration Logs</span>
+                    </div>
+                    <div class="logs-status" id="logsStatus">System Ready</div>
+                </div>
+                
+                <div class="logs-content" id="logsContent">
+                    <div class="log-entry system">
+                        <span class="log-timestamp">[00:00:00]</span>
+                        <span class="log-type">[SYSTEM]</span>
+                        Emergency Multi-Agent System initialized
+                        Web UI interface active
+                        Ready for emergency reports...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Socket.IO connection
+        const socket = io();
+        
+        // State management
+        let systemRunning = false;
+        let messageCount = 0;
+        let startTime = null;
+        let sessionId = null;
+        let currentAgent = 'routing';
+        let statusTimer = null;
+
+        // Initialize
+        document.getElementById('startTime').textContent = new Date().toLocaleTimeString();
+        
+        // Socket event handlers
+        socket.on('connect', function() {
+            updateConnectionStatus(true);
+            showNotification('Connected to server', 'success');
+            console.log('Socket.IO connected successfully');
+        });
+
+        socket.on('disconnect', function() {
+            updateConnectionStatus(false);
+            showNotification('Disconnected from server', 'error');
+            disableChatInterface();
+            console.log('Socket.IO disconnected - chat interface disabled');
+        });
+
+        socket.on('new_log', function(data) {
+            addLogEntry(data.type, data.content, data.agent, data.timestamp);
+        });
+
+        socket.on('agent_changed', function(data) {
+            setCurrentAgent(data.new_agent);
+            showNotification(`Switched to ${data.new_agent} agent`, 'info');
+            updateChatStatus(`Now chatting with ${data.new_agent} agent`);
+        });
+
+        socket.on('system_status', function(data) {
+            updateSystemStatus(data);
+        });
+
+        socket.on('dispatch_report', function(data) {
+            showDispatchReport(data);
+        });
+
+        socket.on('agent_response', function(data) {
+            addChatMessage('agent', data.message, data.timestamp);
+            hideTypingIndicator();
+        });
+
+        // API functions
+        async function startSystem() {
+            if (systemRunning) return;
+            
+            console.log('Starting system...');
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            
+            startBtn.disabled = true;
+            startBtn.innerHTML = '<span class="loading"></span> Starting...';
+            
+            try {
+                console.log('Sending start request to /api/system/start');
+                const response = await fetch('/api/system/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                console.log('Start response status:', response.status);
+                const data = await response.json();
+                console.log('Start response data:', data);
+                
+                if (data.success) {
+                    systemRunning = true;
+                    sessionId = data.session_id;
+                    startTime = new Date();
+                    
+                    document.getElementById('sessionId').textContent = sessionId;
+                    updateStatus('System Running', 'running');
+                    
+                    startBtn.style.display = 'none';
+                    stopBtn.disabled = false;
+                    stopBtn.style.display = 'flex';
+                    
+                    console.log('Enabling chat interface...');
+                    enableChatInterface();
+                    startStatusTimer();
+                    showNotification('System started successfully!', 'success');
+                } else {
+                    throw new Error(data.error || 'Failed to start system');
+                }
+            } catch (error) {
+                console.error('Error starting system:', error);
+                console.error('Error details:', error);
+                showNotification('Failed to start system: ' + error.message, 'error');
+                updateChatStatus('Failed to start system');
+            } finally {
+                startBtn.disabled = false;
+                startBtn.innerHTML = '<span>🚀</span> Start System';
+            }
+        }
+
+        async function stopSystem() {
+            if (!systemRunning) return;
+            
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            
+            stopBtn.disabled = true;
+            stopBtn.innerHTML = '<span class="loading"></span> Stopping...';
+            
+            try {
+                const response = await fetch('/api/system/stop', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    systemRunning = false;
+                    updateStatus('System Stopped', 'stopped');
+                    
+                    startBtn.style.display = 'flex';
+                    startBtn.disabled = false;
+                    stopBtn.style.display = 'none';
+                    
+                    disableChatInterface();
+                    stopStatusTimer();
+                    showNotification('System stopped successfully!', 'success');
+                } else {
+                    throw new Error(data.error || 'Failed to stop system');
+                }
+            } catch (error) {
+                console.error('Error stopping system:', error);
+                showNotification('Failed to stop system: ' + error.message, 'error');
+            } finally {
+                stopBtn.disabled = false;
+                stopBtn.innerHTML = '<span>⏹️</span> Stop System';
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) {
+                showNotification('Please enter a message', 'error');
+                return;
+            }
+            
+            if (!systemRunning) {
+                showNotification('System must be running to send messages', 'error');
+                return;
+            }
+            
+            // Add user message to chat
+            addChatMessage('user', message);
+            
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<span class="loading"></span> Sending...';
+            
+            try {
+                const response = await fetch('/api/chat/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    input.value = '';
+                    autoResize(input);
+                    showTypingIndicator();
+                    updateChatStatus(`Processing with ${data.agent} agent...`);
+                } else {
+                    throw new Error(data.error || 'Failed to send message');
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                showNotification('Failed to send message: ' + error.message, 'error');
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<span>📤</span> Send';
+            }
+        }
+
+        async function exportLog() {
+            try {
+                const response = await fetch('/api/messages/export');
+                const data = await response.json();
+                
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `emergency_log_${data.session_id || 'unknown'}_${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                showNotification('Log exported successfully!', 'success');
+            } catch (error) {
+                console.error('Error exporting log:', error);
+                showNotification('Failed to export log', 'error');
+            }
+        }
+
+        // Chat functionality
+        function addChatMessage(type, content, timestamp = null) {
+            const chatMessages = document.getElementById('chatMessages');
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            
+            const time = timestamp || new Date().toLocaleTimeString();
+            
+            message.innerHTML = `
+                <div class="message-header">
+                    <span class="message-type">${type}</span>
+                    <span class="message-time">${time}</span>
+                </div>
+                <div class="message-content">${content}</div>
+            `;
+            
+            chatMessages.appendChild(message);
+            messageCount++;
+            updateMessageCount();
+            scrollChatToBottom();
+        }
+
+        function addLogEntry(type, content, agent = null, timestamp = null) {
+            const logsContent = document.getElementById('logsContent');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            
+            const time = timestamp || new Date().toLocaleTimeString();
+            const agentInfo = agent ? ` [${agent}]` : '';
+            
+            logEntry.innerHTML = `
+                <span class="log-timestamp">[${time}]</span>
+                <span class="log-type">[${type.toUpperCase()}${agentInfo}]</span>
+                ${content}
+            `;
+            
+            logsContent.appendChild(logEntry);
+            scrollLogsToBottom();
+        }
+
+        function showDispatchReport(data) {
+            const logsContent = document.getElementById('logsContent');
+            const dispatchDiv = document.createElement('div');
+            dispatchDiv.className = 'dispatch-report';
+            
+            dispatchDiv.innerHTML = `
+                <div class="dispatch-title">🚨 FINAL DISPATCH REPORT</div>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+            
+            logsContent.appendChild(dispatchDiv);
+            scrollLogsToBottom();
+        }
+
+        function enableChatInterface() {
+            const input = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('sendBtn');
+            
+            console.log('Enabling chat input and send button...');
+            input.disabled = false;
+            sendBtn.disabled = false;
+            input.placeholder = `Describe your emergency to the ${currentAgent} agent...`;
+            
+            updateChatStatus('Ready to chat');
+            console.log('Chat interface enabled successfully');
+        }
+
+        async function checkSystemStatus() {
+            console.log('Checking system status...');
+            try {
+                const response = await fetch('/api/system/status');
+                const data = await response.json();
+                console.log('System status:', data);
+                
+                showNotification(`System Running: ${data.running}, Agent: ${data.current_agent}`, 'info');
+                
+                if (data.running && data.current_agent) {
+                    systemRunning = true;
+                    currentAgent = data.current_agent;
+                    enableChatInterface();
+                } else if (data.running && !data.current_agent) {
+                    systemRunning = false;
+                    updateChatStatus('System error - agent is null');
+                    console.error('System is running but current_agent is null');
+                } else {
+                    systemRunning = false;
+                    updateChatStatus('System not running - click Start System');
+                }
+            } catch (error) {
+                console.error('Error checking status:', error);
+                showNotification('Failed to check system status: ' + error.message, 'error');
+            }
+        }
+
+        async function sendDummyData() {
+            console.log('Sending dummy emergency data...');
+            try {
+                const dummyEmergency = {
+                    "success": true,
+                    "data": {
+                        "emergencies": [{
+                            "id": "dummy-" + Date.now(),
+                            "title": "Test Emergency - Medical",
+                            "description": "This is a test emergency to verify the connection between Flask backend and React frontend.",
+                            "type": "medical",
+                            "priority": "High",
+                            "status": "active",
+                            "timestamp": new Date().toISOString(),
+                            "address": "123 Test Street, Test City, TC 12345",
+                            "coordinates": {
+                                "latitude": 40.7128,
+                                "longitude": -74.0060
+                            },
+                            "reportedBy": {
+                                "name": "Test User",
+                                "phone": "+1-555-0123",
+                                "email": "test@example.com"
+                            },
+                            "severity": 7,
+                            "assignedUnits": ["AMB-001", "POL-002"],
+                            "estimatedArrival": "15 minutes",
+                            "images": [],
+                            "audio": null,
+                            "video": null
+                        }]
+                    }
+                };
+
+                const response = await fetch('/api/system/send-dummy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(dummyEmergency)
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showNotification('Dummy data sent successfully! Check React frontend for the emergency.', 'success');
+                    console.log('Dummy data sent:', result);
+                } else {
+                    showNotification(`Failed to send dummy data: ${result.message}`, 'error');
+                    console.error('Failed to send dummy data:', result);
+                }
+            } catch (error) {
+                console.error('Error sending dummy data:', error);
+                showNotification('Error sending dummy data. Check console for details.', 'error');
+            }
+        }
+
+        function disableChatInterface() {
+            const input = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('sendBtn');
+            
+            input.disabled = true;
+            sendBtn.disabled = true;
+            input.placeholder = 'Start the system to begin chatting...';
+            
+            updateChatStatus('System not running');
+            hideTypingIndicator();
+        }
+
+        function updateChatStatus(status) {
+            document.getElementById('chatStatus').textContent = status;
+        }
+
+        function updateLogsStatus(status) {
+            document.getElementById('logsStatus').textContent = status;
+        }
+
+        function showTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'flex';
+        }
+
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'none';
+        }
+
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+
+        function clearChat() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = `
+                <div class="message agent">
+                    <div class="message-header">
+                        <span class="message-type">System</span>
+                        <span class="message-time">${new Date().toLocaleTimeString()}</span>
+                    </div>
+                    <div class="message-content">🧹 Chat cleared by user</div>
+                </div>
+            `;
+            messageCount = 0;
+            updateMessageCount();
+        }
+
+        function clearLogs() {
+            const logsContent = document.getElementById('logsContent');
+            logsContent.innerHTML = `
+                <div class="log-entry system">
+                    <span class="log-timestamp">[${new Date().toLocaleTimeString()}]</span>
+                    <span class="log-type">[SYSTEM]</span>
+                    Logs cleared by user
+                </div>
+            `;
+        }
+
+        // UI helper functions
+        function updateConnectionStatus(connected) {
+            const statusEl = document.getElementById('connectionStatus');
+            if (connected) {
+                statusEl.textContent = '🟢 Connected';
+                statusEl.className = 'connection-status connected';
+            } else {
+                statusEl.textContent = '🔴 Disconnected';
+                statusEl.className = 'connection-status disconnected';
+            }
+        }
+
+        function updateSystemStatus(data) {
+            systemRunning = data.running;
+            sessionId = data.session_id;
+            messageCount = data.message_count;
+            currentAgent = data.current_agent;
+            
+            document.getElementById('sessionId').textContent = sessionId || '-';
+            document.getElementById('messageCount').textContent = messageCount;
+            document.getElementById('currentAgent').textContent = currentAgent || '-';
+            
+            if (systemRunning) {
+                updateStatus('System Running', 'running');
+                document.getElementById('startBtn').style.display = 'none';
+                document.getElementById('stopBtn').style.display = 'flex';
+                document.getElementById('stopBtn').disabled = false;
+                enableChatInterface();
+                startStatusTimer();
+            } else {
+                updateStatus('System Stopped', 'stopped');
+                document.getElementById('startBtn').style.display = 'flex';
+                document.getElementById('stopBtn').style.display = 'none';
+                disableChatInterface();
+                stopStatusTimer();
+            }
+            
+            if (data.duration) {
+                const minutes = Math.floor(data.duration / 60);
+                const seconds = data.duration % 60;
+                const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                document.getElementById('activeTime').textContent = timeStr;
+            }
+        }
+
+        function updateStatus(text, status) {
+            document.getElementById('statusText').textContent = text;
+            const indicator = document.getElementById('systemStatus');
+            indicator.className = `status-indicator ${status}`;
+        }
+
+        function setCurrentAgent(agentName) {
+            currentAgent = agentName;
+            document.getElementById('currentAgent').textContent = agentName;
+            
+            if (systemRunning) {
+                updateChatStatus(`Chatting with ${agentName} agent`);
+                document.getElementById('chatInput').placeholder = `Describe your emergency to the ${agentName} agent...`;
+            }
+        }
+
+        function updateMessageCount() {
+            document.getElementById('messageCount').textContent = messageCount;
+        }
+
+        function scrollChatToBottom() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function scrollLogsToBottom() {
+            const logsContent = document.getElementById('logsContent');
+            logsContent.scrollTop = logsContent.scrollHeight;
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification show ${type}`;
+            
+            setTimeout(() => {
+                notification.className = 'notification';
+            }, 3000);
+        }
+
+        function startStatusTimer() {
+            if (statusTimer) clearInterval(statusTimer);
+            
+            statusTimer = setInterval(() => {
+                if (systemRunning && startTime) {
+                    const now = new Date();
+                    const diff = Math.floor((now - startTime) / 1000);
+                    const minutes = Math.floor(diff / 60);
+                    const seconds = diff % 60;
+                    const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    
+                    document.getElementById('activeTime').textContent = timeStr;
+                }
+            }, 1000);
+        }
+
+        function stopStatusTimer() {
+            if (statusTimer) {
+                clearInterval(statusTimer);
+                statusTimer = null;
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hide stop button initially
+            document.getElementById('stopBtn').style.display = 'none';
+            
+            // Set up chat input handlers
+            const chatInput = document.getElementById('chatInput');
+            
+            // Auto-resize textarea
+            chatInput.addEventListener('input', function() {
+                autoResize(this);
+            });
+            
+            // Handle Enter key (Shift+Enter for new line)
+            chatInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            // Focus on chat input when system starts
+            const startBtn = document.getElementById('startBtn');
+            startBtn.addEventListener('click', function() {
+                setTimeout(() => {
+                    if (systemRunning) {
+                        chatInput.focus();
+                    }
+                }, 1000);
+            });
+        });
+    </script>
+</body>
+</html>

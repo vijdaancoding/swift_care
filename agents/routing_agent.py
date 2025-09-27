@@ -8,7 +8,7 @@ def run_routing_agent(prompt: str):
     agent_name = "routing"
 
     chat = create_agent(prompt, agent_name)
-    print("👮 Emergency Routing Agent is active.")
+    print("Emergency Routing Agent is active.")
     print("------------------------------------------------\n")
     
     while True:
@@ -31,7 +31,7 @@ def run_routing_agent(prompt: str):
 
         if "ROUTE:" in response['data']:
             category = response['data'].split("ROUTE:")[-1].strip()
-            print(f"\n✅ Routing complete. Handing off to {category} agent...\n")
+            print(f"\nRouting complete. Handing off to {category} agent...\n")
 
             add_agent_transition(agent_name, category.lower(), "Routing Decision")
 

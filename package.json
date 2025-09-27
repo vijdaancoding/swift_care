@@ -1,0 +1,21 @@
+{
+  "name": "swift-care-frontend-bridge",
+  "version": "1.0.0",
+  "description": "Bridge server to connect Flask backend with React frontend",
+  "main": "frontend_bridge.js",
+  "scripts": {
+    "start": "node frontend_bridge.js",
+    "dev": "nodemon frontend_bridge.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": ["emergency", "dispatch", "bridge"],
+  "author": "Swift Care Team",
+  "license": "MIT"
+}
