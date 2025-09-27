@@ -51,6 +51,7 @@ class CNode:
             print(f"[C-Node] DIRECT WiFi route - bypassing relay")
         else:
             print(f"[C-Node] Bluetooth route - via relay network")
+        
         print(f"[C-Node] Final destination reached: {message_json}")
         
         # Update path
@@ -98,10 +99,10 @@ def run_relay_worker(input_queue, output_queue, response_input_queue, response_o
     response_output_queue.put(processed_response)
 
 
-def run_c_worker(input_queue, output_queue, processor_function):
+def run_c_worker(input_queue, output_queue, processor_function, use_direct_route=False):
     c_node = CNode("C-NODE")
     
     # Handle incoming message and generate response
     message = input_queue.get()
-    response = c_node.process_message(message, processor_function)
+    response = c_node.process_message(message, processor_function, use_direct_route)
     output_queue.put(response)
