@@ -57,7 +57,7 @@ class GlobalHistoryManager:
         if self.shared_chat is None:
             # Create new chat with base prompt
             model = genai.GenerativeModel(
-                model_name="gemini-2.5-flash",
+                model_name="gemini-2.0-flash",
                 system_instruction=base_prompt
             )
             self.shared_chat = model.start_chat()

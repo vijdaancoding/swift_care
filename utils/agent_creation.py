@@ -32,7 +32,7 @@ def create_agent(prompt: str, agent_name: str = "unknown"):
 
 def create_fresh_agent(prompt: str):
     model = genai.GenerativeModel(
-        model_name="gemini-2.5-flash",
+        model_name="gemini-2.0-flash",
         system_instruction=prompt  # system prompt goes here
     )
 

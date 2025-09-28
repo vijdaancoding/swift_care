@@ -19,7 +19,7 @@ class AllocatorAgent:
         
         # Configure Gemini
         genai.configure(api_key=api_key)
-        self.llm_model = genai.GenerativeModel('gemini-2.5-flash')
+        self.llm_model = genai.GenerativeModel('gemini-2.0-flash')
         self.maps_api_key = maps_api_key
         
         # Predefined dummy data for reporters
