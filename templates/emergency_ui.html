@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Emergency Multi-Agent System</title>
+    <title>SwiftCare - Emergency Multi-Agent System</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -13,140 +14,429 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 100%);
             min-height: 100vh;
-            padding: 20px;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        /* Animated background particles */
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 50%;
+            animation: float 20s infinite linear;
+        }
+
+        .particle:nth-child(1) { width: 4px; height: 4px; left: 10%; animation-delay: 0s; }
+        .particle:nth-child(2) { width: 6px; height: 6px; left: 20%; animation-delay: 2s; }
+        .particle:nth-child(3) { width: 3px; height: 3px; left: 30%; animation-delay: 4s; }
+        .particle:nth-child(4) { width: 5px; height: 5px; left: 40%; animation-delay: 6s; }
+        .particle:nth-child(5) { width: 4px; height: 4px; left: 50%; animation-delay: 8s; }
+        .particle:nth-child(6) { width: 6px; height: 6px; left: 60%; animation-delay: 10s; }
+        .particle:nth-child(7) { width: 3px; height: 3px; left: 70%; animation-delay: 12s; }
+        .particle:nth-child(8) { width: 5px; height: 5px; left: 80%; animation-delay: 14s; }
+        .particle:nth-child(9) { width: 4px; height: 4px; left: 90%; animation-delay: 16s; }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
         }
 
         .container {
-            max-width: 1600px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 1800px;
+            margin: 20px auto;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 24px;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(59, 130, 246, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
             overflow: hidden;
             display: flex;
             flex-direction: column;
             height: calc(100vh - 40px);
+            position: relative;
         }
 
         .header {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
             color: white;
-            padding: 20px 30px;
+            padding: 32px;
             text-align: center;
             flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
         }
 
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            font-size: 3em;
+            font-weight: 700;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            letter-spacing: -0.02em;
         }
 
         .header p {
-            font-size: 1.1em;
+            font-size: 1.2em;
             opacity: 0.9;
+            font-weight: 400;
+            letter-spacing: 0.01em;
         }
 
         .controls {
-            padding: 20px 30px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
+            padding: 24px 32px;
+            background: rgba(30, 41, 59, 0.8);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
             display: flex;
-            gap: 15px;
+            gap: 16px;
             align-items: center;
             flex-wrap: wrap;
             flex-shrink: 0;
+            backdrop-filter: blur(10px);
         }
 
         .btn {
-            padding: 12px 24px;
+            padding: 14px 28px;
             border: none;
-            border-radius: 25px;
+            border-radius: 16px;
             cursor: pointer;
             font-weight: 600;
-            transition: all 0.3s ease;
             font-size: 14px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 0.01em;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
         }
 
         .btn:disabled {
-            opacity: 0.5;
+            opacity: 0.4;
             cursor: not-allowed;
+            transform: none !important;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
         }
 
         .btn-secondary {
-            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
             color: white;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
         }
 
         .btn-danger {
-            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             color: white;
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-orange {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-purple {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            box-shadow: 0 4px 14px rgba(139, 92, 246, 0.3);
         }
 
         .btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active:not(:disabled) {
+            transform: translateY(-1px);
+            transition: all 0.1s ease;
         }
 
         .status-bar {
-            padding: 15px 30px;
-            background: linear-gradient(135deg, #333 0%, #555 100%);
-            color: white;
+            padding: 20px 32px;
+            background: rgba(15, 23, 42, 0.9);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-family: monospace;
+            font-family: 'Inter', monospace;
             flex-wrap: wrap;
-            gap: 20px;
+            gap: 24px;
             flex-shrink: 0;
+            backdrop-filter: blur(10px);
         }
 
         .status-item {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
+            padding: 8px 16px;
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 12px;
+            border: 1px solid rgba(59, 130, 246, 0.1);
         }
 
         .status-indicator {
-            width: 12px;
-            height: 12px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
-            background: #666;
-            transition: all 0.3s ease;
+            background: #64748b;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .status-indicator::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
         .status-indicator.running {
-            background: #4CAF50;
-            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+            background: #10b981;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
             animation: pulse 2s infinite;
         }
 
+        .status-indicator.running::after {
+            border: 2px solid #10b981;
+            opacity: 0.3;
+            animation: ripple 2s infinite;
+        }
+
         .status-indicator.stopped {
-            background: #f44336;
-            box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
+            background: #ef4444;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(1.1); }
+            0%, 100% { 
+                opacity: 1; 
+                transform: scale(1); 
+            }
+            50% { 
+                opacity: 0.7; 
+                transform: scale(1.2); 
+            }
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.3;
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        /* Agent Orchestration Visualization */
+        .agent-orchestration {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 20px;
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 16px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .agent-flow {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .agent-node {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .agent-node.routing {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .agent-node.medical {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        .agent-node.crime {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+        }
+
+        .agent-node.disaster {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        }
+
+        .agent-node.active {
+            transform: scale(1.2);
+            animation: agentPulse 1.5s infinite;
+        }
+
+        .agent-node::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .agent-node.active::before {
+            border-color: rgba(255, 255, 255, 0.5);
+            opacity: 1;
+            animation: agentRipple 1.5s infinite;
+        }
+
+        @keyframes agentPulse {
+            0%, 100% { transform: scale(1.2); }
+            50% { transform: scale(1.3); }
+        }
+
+        @keyframes agentRipple {
+            0% {
+                transform: scale(0.8);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.4);
+                opacity: 0;
+            }
+        }
+
+        .flow-arrow {
+            width: 24px;
+            height: 2px;
+            background: linear-gradient(90deg, #64748b, transparent);
+            position: relative;
+        }
+
+        .flow-arrow::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: -4px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid #64748b;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+        }
+
+        .flow-arrow.active {
+            background: linear-gradient(90deg, #10b981, #059669);
+            animation: flowPulse 1s infinite;
+        }
+
+        .flow-arrow.active::after {
+            border-left-color: #10b981;
+        }
+
+        @keyframes flowPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
         }
 
         .main-content {
             display: flex;
             flex: 1;
             min-height: 0;
+            gap: 2px;
         }
 
         /* LEFT HALF - CHATBOT */
@@ -154,185 +444,276 @@
             width: 50%;
             display: flex;
             flex-direction: column;
-            border-right: 1px solid #e9ecef;
-            background: #f8f9fa;
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 0 0 0 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chatbot-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+            pointer-events: none;
         }
 
         .chat-header {
-            padding: 20px;
-            background: white;
-            border-bottom: 1px solid #e9ecef;
+            padding: 24px 32px;
+            background: rgba(15, 23, 42, 0.8);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
+            z-index: 1;
         }
 
         .chat-title {
             font-weight: 600;
-            color: #333;
+            color: #f8fafc;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
+            font-size: 1.1em;
+        }
+
+        .chat-title .icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
         }
 
         .chat-status {
             font-size: 0.9em;
-            color: #666;
-            padding: 5px 10px;
-            background: #f8f9fa;
-            border-radius: 15px;
-            border: 1px solid #ddd;
+            color: #94a3b8;
+            padding: 8px 16px;
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 20px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .chat-status.active {
+            color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.3);
         }
 
         .chat-messages {
             flex: 1;
-            padding: 20px;
+            padding: 24px 32px;
             overflow-y: auto;
-            background: white;
+            position: relative;
+            z-index: 1;
         }
 
         .message {
-            margin-bottom: 20px;
-            padding: 15px 20px;
-            border-radius: 15px;
-            animation: slideIn 0.3s ease;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+            padding: 20px 24px;
+            border-radius: 20px;
+            animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         @keyframes slideIn {
             from {
                 opacity: 0;
-                transform: translateY(20px);
+                transform: translateY(30px) scale(0.95);
             }
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0) scale(1);
             }
         }
 
         .message.user {
-            background: linear-gradient(135deg, #e3f2fd 0%, #f0f8ff 100%);
-            border-left: 4px solid #2196F3;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+            border-left: 4px solid #3b82f6;
             margin-left: 20%;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.2);
         }
 
         .message.agent {
-            background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
-            border-left: 4px solid #4CAF50;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+            border-left: 4px solid #10b981;
             margin-right: 20%;
+            box-shadow: 0 8px 32px rgba(16, 185, 129, 0.2);
+        }
+
+        .message.system {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+            border-left: 4px solid #8b5cf6;
+            margin: 0 10%;
+            box-shadow: 0 8px 32px rgba(139, 92, 246, 0.2);
         }
 
         .message-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .message-type {
             font-weight: 600;
-            font-size: 0.9em;
+            font-size: 0.85em;
             text-transform: uppercase;
             letter-spacing: 1px;
+            color: #94a3b8;
         }
 
         .message-time {
             font-size: 0.8em;
-            color: #666;
-            font-family: monospace;
+            color: #64748b;
+            font-family: 'Inter', monospace;
+            background: rgba(30, 41, 59, 0.6);
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(59, 130, 246, 0.1);
         }
 
         .message-content {
-            line-height: 1.6;
+            line-height: 1.7;
             white-space: pre-wrap;
+            color: #f8fafc;
+            font-size: 15px;
         }
 
         .chat-input-container {
-            padding: 20px;
-            background: white;
-            border-top: 1px solid #e9ecef;
+            padding: 24px 32px;
+            background: rgba(15, 23, 42, 0.8);
+            border-top: 1px solid rgba(59, 130, 246, 0.2);
             display: flex;
-            gap: 10px;
+            gap: 16px;
             align-items: flex-end;
+            position: relative;
+            z-index: 1;
         }
 
         .chat-input {
             flex: 1;
-            min-height: 40px;
+            min-height: 48px;
             max-height: 120px;
-            padding: 12px 16px;
-            border: 2px solid #ddd;
-            border-radius: 20px;
-            font-family: inherit;
-            font-size: 14px;
+            padding: 16px 20px;
+            border: 2px solid rgba(59, 130, 246, 0.2);
+            border-radius: 24px;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
             resize: none;
-            transition: border-color 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             outline: none;
+            background: rgba(30, 41, 59, 0.6);
+            color: #f8fafc;
+            backdrop-filter: blur(10px);
         }
 
         .chat-input:focus {
-            border-color: #4CAF50;
-            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            background: rgba(30, 41, 59, 0.8);
         }
 
         .chat-input::placeholder {
-            color: #999;
+            color: #94a3b8;
         }
 
         .send-btn {
-            padding: 12px 20px;
-            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
             color: white;
             border: none;
-            border-radius: 20px;
+            border-radius: 24px;
             cursor: pointer;
             font-weight: 600;
-            transition: all 0.3s ease;
+            font-size: 15px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .send-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .send-btn:hover:not(:disabled)::before {
+            left: 100%;
         }
 
         .send-btn:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.5);
         }
 
         .send-btn:disabled {
-            opacity: 0.5;
+            opacity: 0.4;
             cursor: not-allowed;
             transform: none;
+            box-shadow: none;
         }
 
         .typing-indicator {
             display: none;
             align-items: center;
-            gap: 8px;
-            color: #666;
+            gap: 12px;
+            color: #94a3b8;
             font-style: italic;
-            margin-top: 10px;
-            padding: 10px 20px;
+            margin-top: 16px;
+            padding: 16px 32px;
+            position: relative;
+            z-index: 1;
         }
 
         .typing-dots {
             display: flex;
-            gap: 4px;
+            gap: 6px;
         }
 
         .typing-dot {
-            width: 6px;
-            height: 6px;
-            background: #666;
+            width: 8px;
+            height: 8px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
             border-radius: 50%;
             animation: typing 1.4s infinite ease-in-out;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
         }
 
         .typing-dot:nth-child(1) { animation-delay: -0.32s; }
         .typing-dot:nth-child(2) { animation-delay: -0.16s; }
 
         @keyframes typing {
-            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
-            40% { transform: scale(1.2); opacity: 1; }
+            0%, 80%, 100% { 
+                transform: scale(0.8); 
+                opacity: 0.5; 
+            }
+            40% { 
+                transform: scale(1.2); 
+                opacity: 1; 
+            }
         }
 
         /* RIGHT HALF - ORCHESTRATION LOGS */
@@ -340,104 +721,175 @@
             width: 50%;
             display: flex;
             flex-direction: column;
-            background: #1a1a2e;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 0 0 24px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logs-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%);
+            pointer-events: none;
         }
 
         .logs-header {
-            padding: 20px;
-            background: #16213e;
-            border-bottom: 1px solid #2a3b5e;
+            padding: 24px 32px;
+            background: rgba(30, 41, 59, 0.9);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
+            z-index: 1;
         }
 
         .logs-title {
             font-weight: 600;
-            color: #fff;
+            color: #f8fafc;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
+            font-size: 1.1em;
+        }
+
+        .logs-title .icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
         }
 
         .logs-status {
             font-size: 0.9em;
-            color: #e94560;
-            padding: 5px 10px;
-            background: rgba(233, 69, 96, 0.2);
-            border-radius: 15px;
-            border: 1px solid #e94560;
+            color: #10b981;
+            padding: 8px 16px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 20px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .logs-status.active {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
         }
 
         .logs-content {
             flex: 1;
-            padding: 20px;
+            padding: 24px 32px;
             overflow-y: auto;
-            background: #1a1a2e;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            line-height: 1.4;
+            position: relative;
+            z-index: 1;
+            font-family: 'Inter', 'SF Mono', monospace;
+            font-size: 14px;
+            line-height: 1.6;
         }
 
         .log-entry {
-            margin-bottom: 15px;
-            padding: 12px 15px;
-            border-radius: 8px;
-            animation: fadeIn 0.3s ease;
-            border-left: 3px solid;
-            background: rgba(0, 0, 0, 0.2);
+            margin-bottom: 16px;
+            padding: 16px 20px;
+            border-radius: 16px;
+            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 4px solid;
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             white-space: pre-wrap;
             word-wrap: break-word;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .log-entry::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%);
+            pointer-events: none;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { 
+                opacity: 0; 
+                transform: translateY(20px) scale(0.95); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
         }
 
         .log-entry.system {
-            border-color: #3498db;
-            color: #bdc3c7;
-            background: rgba(52, 152, 219, 0.1);
+            border-color: #3b82f6;
+            color: #94a3b8;
+            background: rgba(59, 130, 246, 0.1);
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2);
         }
 
         .log-entry.user {
-            border-color: #16c79a;
-            color: #16c79a;
-            background: rgba(22, 199, 154, 0.1);
+            border-color: #10b981;
+            color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
         }
 
         .log-entry.agent {
-            border-color: #e94560;
-            color: #e94560;
-            background: rgba(233, 69, 96, 0.1);
+            border-color: #ef4444;
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.2);
         }
 
         .log-entry.dispatch {
-            border-color: #f39c12;
-            color: #f39c12;
-            background: rgba(243, 156, 18, 0.1);
-            font-weight: bold;
+            border-color: #f59e0b;
+            color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3);
         }
 
         .log-entry.error {
-            border-color: #e74c3c;
-            color: #e74c3c;
-            background: rgba(231, 76, 60, 0.1);
+            border-color: #ef4444;
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.2);
         }
 
         .log-timestamp {
-            color: #7f8c8d;
+            color: #64748b;
             font-size: 0.85em;
-            margin-right: 10px;
+            margin-right: 12px;
+            background: rgba(30, 41, 59, 0.8);
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            font-family: 'Inter', monospace;
         }
 
         .log-type {
-            color: #fff;
-            font-weight: bold;
-            margin-right: 10px;
+            color: #f8fafc;
+            font-weight: 600;
+            margin-right: 12px;
             text-transform: uppercase;
             font-size: 0.8em;
+            letter-spacing: 1px;
         }
 
         .dispatch-report {
@@ -574,13 +1026,28 @@
     </style>
 </head>
 <body>
+    <!-- Animated Background Particles -->
+    <div class="bg-particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
     <div class="connection-status" id="connectionStatus">🔌 Connecting...</div>
     <div class="notification" id="notification"></div>
 
     <div class="container">
         <div class="header">
-            <h1>🚨 Emergency Multi-Agent System</h1>
-            <p>Chatbot Interface | Orchestration Logs</p>
+            <div class="header-content">
+                <h1>🚨 SwiftCare Emergency System</h1>
+                <p>Intelligent Multi-Agent Response Platform</p>
+            </div>
         </div>
 
         <div class="controls">
@@ -599,14 +1066,14 @@
             <button class="btn btn-secondary" onclick="exportLog()">
                 <span>📥</span> Export Log
             </button>
-            <button class="btn btn-secondary" onclick="enableChatInterface()" style="background: #ff9800;">
-                <span>🔧</span> Enable Chat (Debug)
+            <button class="btn btn-orange" onclick="enableChatInterface()">
+                <span>🔧</span> Enable Chat
             </button>
-            <button class="btn btn-secondary" onclick="checkSystemStatus()" style="background: #9c27b0;">
+            <button class="btn btn-purple" onclick="checkSystemStatus()">
                 <span>🔍</span> Check Status
             </button>
-            <button class="btn btn-secondary" onclick="sendDummyData()" style="background: #4caf50;">
-                <span>🧪</span> Send Dummy Data
+            <button class="btn btn-primary" onclick="sendDummyData()">
+                <span>🧪</span> Send Test Data
             </button>
         </div>
 
@@ -627,6 +1094,18 @@
             <div class="status-item">
                 <span>Active Time: <span id="activeTime">00:00</span></span>
             </div>
+            <div class="agent-orchestration">
+                <span style="color: #94a3b8; font-size: 0.9em; margin-right: 12px;">Agent Flow:</span>
+                <div class="agent-flow">
+                    <div class="agent-node routing" id="agent-routing" title="Routing Agent">R</div>
+                    <div class="flow-arrow" id="arrow-1"></div>
+                    <div class="agent-node medical" id="agent-medical" title="Medical Agent">M</div>
+                    <div class="flow-arrow" id="arrow-2"></div>
+                    <div class="agent-node crime" id="agent-crime" title="Crime Agent">C</div>
+                    <div class="flow-arrow" id="arrow-3"></div>
+                    <div class="agent-node disaster" id="agent-disaster" title="Disaster Agent">D</div>
+                </div>
+            </div>
         </div>
 
         <div class="main-content">
@@ -634,20 +1113,20 @@
             <div class="chatbot-panel">
                 <div class="chat-header">
                     <div class="chat-title">
-                        <span>💬</span>
+                        <div class="icon">💬</div>
                         <span>Emergency Chatbot</span>
                     </div>
                     <div class="chat-status" id="chatStatus">System Ready</div>
                 </div>
                 
                 <div class="chat-messages" id="chatMessages">
-                    <div class="message agent">
+                    <div class="message system">
                         <div class="message-header">
                             <span class="message-type">System</span>
                             <span class="message-time" id="startTime"></span>
                         </div>
-                        <div class="message-content">🚀 Emergency Multi-Agent System Ready
-💬 Chat with our AI agents about emergencies
+                        <div class="message-content">🚀 SwiftCare Emergency System Ready
+💬 Chat with our intelligent AI agents about emergencies
 🔄 System will automatically route to appropriate specialists
 📋 Describe your emergency to get started...</div>
                     </div>
@@ -681,8 +1160,8 @@
             <div class="logs-panel">
                 <div class="logs-header">
                     <div class="logs-title">
-                        <span>⚙️</span>
-                        <span>Orchestration Logs</span>
+                        <div class="icon">⚙️</div>
+                        <span>Agent Orchestration</span>
                     </div>
                     <div class="logs-status" id="logsStatus">System Ready</div>
                 </div>
@@ -691,9 +1170,9 @@
                     <div class="log-entry system">
                         <span class="log-timestamp">[00:00:00]</span>
                         <span class="log-type">[SYSTEM]</span>
-                        Emergency Multi-Agent System initialized
-                        Web UI interface active
-                        Ready for emergency reports...
+                        SwiftCare Emergency Multi-Agent System initialized
+                        Web UI interface active with enhanced visualization
+                        Agent orchestration ready for emergency reports...
                     </div>
                 </div>
             </div>
@@ -735,6 +1214,7 @@
 
         socket.on('agent_changed', function(data) {
             setCurrentAgent(data.new_agent);
+            updateAgentOrchestration(data.old_agent, data.new_agent);
             showNotification(`Switched to ${data.new_agent} agent`, 'info');
             updateChatStatus(`Now chatting with ${data.new_agent} agent`);
         });
@@ -1075,11 +1555,27 @@
         }
 
         function updateChatStatus(status) {
-            document.getElementById('chatStatus').textContent = status;
+            const chatStatusEl = document.getElementById('chatStatus');
+            chatStatusEl.textContent = status;
+            
+            // Update styling based on status
+            if (status.includes('Ready') || status.includes('active')) {
+                chatStatusEl.classList.add('active');
+            } else {
+                chatStatusEl.classList.remove('active');
+            }
         }
 
         function updateLogsStatus(status) {
-            document.getElementById('logsStatus').textContent = status;
+            const logsStatusEl = document.getElementById('logsStatus');
+            logsStatusEl.textContent = status;
+            
+            // Update styling based on status
+            if (status.includes('Ready') || status.includes('active')) {
+                logsStatusEl.classList.add('active');
+            } else {
+                logsStatusEl.classList.remove('active');
+            }
         }
 
         function showTypingIndicator() {
@@ -1098,7 +1594,7 @@
         function clearChat() {
             const chatMessages = document.getElementById('chatMessages');
             chatMessages.innerHTML = `
-                <div class="message agent">
+                <div class="message system">
                     <div class="message-header">
                         <span class="message-type">System</span>
                         <span class="message-time">${new Date().toLocaleTimeString()}</span>
@@ -1116,7 +1612,7 @@
                 <div class="log-entry system">
                     <span class="log-timestamp">[${new Date().toLocaleTimeString()}]</span>
                     <span class="log-type">[SYSTEM]</span>
-                    Logs cleared by user
+                    Agent orchestration logs cleared by user
                 </div>
             `;
         }
@@ -1179,6 +1675,35 @@
             if (systemRunning) {
                 updateChatStatus(`Chatting with ${agentName} agent`);
                 document.getElementById('chatInput').placeholder = `Describe your emergency to the ${agentName} agent...`;
+            }
+        }
+
+        function updateAgentOrchestration(oldAgent, newAgent) {
+            // Remove active state from all agents
+            document.querySelectorAll('.agent-node').forEach(node => {
+                node.classList.remove('active');
+            });
+            
+            // Remove active state from all arrows
+            document.querySelectorAll('.flow-arrow').forEach(arrow => {
+                arrow.classList.remove('active');
+            });
+            
+            // Add active state to new agent
+            if (newAgent) {
+                const newAgentNode = document.getElementById(`agent-${newAgent}`);
+                if (newAgentNode) {
+                    newAgentNode.classList.add('active');
+                }
+                
+                // Animate the flow to the new agent
+                const agentIndex = ['routing', 'medical', 'crime', 'disaster'].indexOf(newAgent);
+                if (agentIndex > 0) {
+                    const arrow = document.getElementById(`arrow-${agentIndex}`);
+                    if (arrow) {
+                        arrow.classList.add('active');
+                    }
+                }
             }
         }
 
