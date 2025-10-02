@@ -45,7 +45,7 @@ RescueNet is an **agentic AI-powered emergency response system** designed to imp
 
 ## 🏗️ System Architecture
 
-![Architecture](Hackathon%20Architecture.png)
+![Architecture](assets/design_doc.png)
 
 ---
 
